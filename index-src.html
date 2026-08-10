@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>miku-score Web</title>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; max-width: 72rem; }
+    textarea { box-sizing: border-box; min-height: 14rem; width: 100%; }
+    .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+    #status { min-height: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>miku-score Web</h1>
+    <p id="status">Loading verified miku-score runtime.</p>
+    <label>ABC input<textarea id="abcInput">X:1
+T:miku-score Web bootstrap
+M:4/4
+L:1/4
+K:C
+C D E F|</textarea></label>
+    <div class="actions">
+      <button id="convertAbc" type="button">Convert ABC to MusicXML</button>
+      <button id="newScore" type="button">New score</button>
+      <button id="downloadMidi" type="button">Download MIDI</button>
+      <button id="buildPlaybackPlan" type="button">Build playback plan</button>
+    </div>
+    <label>MusicXML output<textarea id="musicXmlOutput"></textarea></label>
+  </main>
+  <script type="module">
+/*__MIKU_SCORE_RUNTIME__*/
+/*__MIKU_SCORE_WEB__*/
+  </script>
+</body>
+</html>
