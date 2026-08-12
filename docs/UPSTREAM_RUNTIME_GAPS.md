@@ -1,27 +1,22 @@
 # Upstream runtime gaps for Web cutover
 
-`miku-score-web` is intentionally limited to the published `miku-score`
-`v0.7.0` browser-runtime contract. This document records the value operations
-that exist in the historical combined Web App but are not yet public runtime
-operations. The Web App must not copy their MusicXML or ZIP semantics merely to
-close the UI gap.
+`miku-score-web` is pinned to the published `miku-score` `v0.8.0`
+browser-runtime contract. This document records the value operations promoted
+from the historical combined Web App into the public runtime. The Web App must
+use those contracts rather than copy MusicXML or ZIP semantics locally.
 
-## Candidate status
+## Published release status
 
-The local upstream candidate now defines these operations as
+The published upstream `v0.8.0` runtime defines these operations as
 `miku-score/runtime-api@2`. Its runtime contract rejects malformed values and
 validates merged measure edits before success. The capability-gated Web
-implementation passes an isolated v0.8.0 full smoke suite, the v0.7.0
-value-parity baseline, and Chromium v2 interaction coverage. The candidate is
-not a published runtime asset, so this Web App must continue to use its pinned
-`v0.7.0` contract until the Release is published and the verified lock is
-updated.
+implementation passes the v0.8.0 full local smoke suite, the v0.7.0
+value-parity baseline, and Chromium v2 interaction coverage.
 
-## Required before full measure-editor cutover
+## Published measure-editor contract
 
-The Web App can inspect a measure and apply existing note commands through
-`state`, but cannot own an isolated measure draft or add a measure. A future
-runtime API needs value-only operations equivalent to:
+The Web App can use the v0.8.0 value-only operations to own an isolated measure
+draft or add a measure:
 
 ```ts
 measure.extractEditorMusicXml(xml, { partId, measureNumber })
@@ -40,11 +35,10 @@ The same extraction result can support Web-owned measure-only MusicXML and MIDI
 downloads. MIDI remains an ordinary `convert.exportFromMusicXml` call after
 the extracted MusicXML is returned.
 
-## Required before generic ZIP entry selection
+## Published generic ZIP entry-selection contract
 
-The current runtime imports known MXL and MSCZ values, but does not expose the
-archive listing/extraction operations used by the historical generic ZIP picker.
-A future value-only namespace needs:
+The v0.8.0 runtime exposes the archive listing/extraction operations used by
+the historical generic ZIP picker:
 
 ```ts
 archive.listRootEntryPaths(bytes, { extensions })
@@ -56,14 +50,12 @@ archive.extractEntryBytes(bytes, { path })
 The Web App will keep `File`, picker state, labels, and the selected virtual
 file. The runtime must own ZIP parsing, path filtering, and decompression.
 
-## Required before format-specific import-policy controls
+## Published format-specific import-policy controls
 
 The historical Web App controls source and debug metadata for ABC, MEI,
 LilyPond, MuseScore, and MIDI imports; MIDI quantize-grid and triplet-aware
-options; and the VSQX default lyric. `RuntimeImportRequest` in `v0.7.0` has no
-`options` member, so the Web App cannot pass any of these policies through the
-public contract. A future request shape needs format-scoped value options such
-as:
+options; and the VSQX default lyric. `RuntimeImportRequest` in `v0.7.0` had no
+`options` member; v0.8.0 adds format-scoped value options such as:
 
 ```ts
 convert.importToMusicXml({
@@ -90,9 +82,9 @@ must not make MIDI- or VSQX-specific controls visible for other input formats.
 `importMetadata` applies only to importers that already support source/debug
 metadata; it is not a request for a Web-local XML rewrite.
 
-## Required before metadata output-policy parity
+## Published metadata output-policy contract
 
-`v0.7.0` already accepts MIDI program, score-program override, export profile,
+`v0.8.0` accepts MIDI program, score-program override, export profile,
 grace/metric timing, and round-trip metadata options. The Web App exposes those
 options consistently for individual and ZIP MIDI exports. Its MusicXML
 `.xml`/`.musicxml` extension choice is a Web-owned filename policy and does not
@@ -103,8 +95,8 @@ MusicXML filters, then convert the resulting value for every output format:
 - retain/omit source metadata (`mks:src:*`)
 - retain/omit debug metadata (`mks:dbg:*`)
 
-The runtime needs an explicit value-only export option, applied before any
-format converter, for example:
+The runtime supplies an explicit value-only export option, applied before any
+format converter:
 
 ```ts
 convert.exportFromMusicXml({
@@ -122,17 +114,17 @@ convert.exportFromMusicXml({
 }) => Promise<RuntimeResult<string | Uint8Array>>;
 ```
 
-Do not add a Web-local XML metadata filter. Until this contract is published,
-the Web App retains all MusicXML metadata for non-MIDI exports.
+Do not add a Web-local XML metadata filter. The Web App passes the policy to
+the v0.8.0 runtime for every supported output format.
 
-## Candidate acceptance evidence
+## Release intake evidence
 
 - [x] Runtime contract tests cover success, malformed values, and no-mutation
   rejection for every new operation.
 - [x] `miku-score-web` adds browser adapter/UI smoke coverage without importing
   upstream implementation modules.
-- [x] The later-runtime parity smoke compares the v0.8.0 candidate with the
+- [x] The v0.8.0 parity smoke compares the published runtime with the
   checked-in v0.7.0 value baseline.
-- [ ] Web locks the published version, asset, and SHA-256 before enabling the UI.
+- [x] Web locks the published version, asset, and SHA-256 before enabling the UI.
 - [ ] Remote CI and the final human browser comparison pass for the exact
   published-runtime commit.

@@ -6,7 +6,7 @@ single-file composition; score semantics and format conversion stay upstream.
 
 ## Runtime intake
 
-The Web App is currently `0.7.1` and uses the checked-in `v0.7.0` runtime lock.
+The Web App is currently `0.7.1` and uses the checked-in `v0.8.0` runtime lock.
 The Web App and runtime are versioned independently; the build validates the
 Web App package version and the published runtime lock separately. Fetch the
 published and SHA-256 verified runtime, then build and test the offline
@@ -31,7 +31,7 @@ For development against an unpublished upstream candidate, pass its local
 staging artifact explicitly:
 
 ```sh
-npm run runtime:fetch -- --runtime ../miku-score/release-assets/miku-score-runtime-0.7.0.mjs
+npm run runtime:fetch -- --runtime ../miku-score/release-assets/miku-score-runtime-0.8.0.mjs
 ```
 
 The verified runtime is cached under `.cache/`. It is never downloaded by the

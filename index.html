@@ -12153,6 +12153,152 @@ var applyImplicitBeamsToMusicXmlText = (xml) => {
   applyImplicitBeamsToMusicXmlDocument(doc);
   return serializeMusicXmlDocument(doc);
 };
+var cloneXmlDocument = (doc) => {
+  const cloned = document.implementation.createDocument("", "", null);
+  const root = cloned.importNode(doc.documentElement, true);
+  cloned.appendChild(root);
+  return cloned;
+};
+var findPartById = (doc, partId) => {
+  var _a;
+  for (const part of Array.from(doc.querySelectorAll("score-partwise > part"))) {
+    if (((_a = part.getAttribute("id")) != null ? _a : "") === partId) return part;
+  }
+  return null;
+};
+var findScorePartById = (doc, partId) => {
+  var _a;
+  for (const scorePart of Array.from(doc.querySelectorAll("score-partwise > part-list > score-part"))) {
+    if (((_a = scorePart.getAttribute("id")) != null ? _a : "") === partId) return scorePart;
+  }
+  return null;
+};
+var findMeasureByNumber = (part, measureNumber) => {
+  var _a;
+  for (const measure of Array.from(part.querySelectorAll(":scope > measure"))) {
+    if (((_a = measure.getAttribute("number")) != null ? _a : "") === measureNumber) return measure;
+  }
+  return null;
+};
+var collectEffectiveMeasureAttributes = (part, targetMeasure) => {
+  var _a;
+  let divisions = null;
+  let key = null;
+  let time = null;
+  let staves = null;
+  const clefByNo = /* @__PURE__ */ new Map();
+  for (const measure of Array.from(part.querySelectorAll(":scope > measure"))) {
+    const attrs = measure.querySelector(":scope > attributes");
+    if (attrs) {
+      const nextDivisions = attrs.querySelector(":scope > divisions");
+      if (nextDivisions) divisions = nextDivisions.cloneNode(true);
+      const nextKey = attrs.querySelector(":scope > key");
+      if (nextKey) key = nextKey.cloneNode(true);
+      const nextTime = attrs.querySelector(":scope > time");
+      if (nextTime) time = nextTime.cloneNode(true);
+      const nextStaves = attrs.querySelector(":scope > staves");
+      if (nextStaves) staves = nextStaves.cloneNode(true);
+      for (const clef of Array.from(attrs.querySelectorAll(":scope > clef"))) {
+        const no = (_a = clef.getAttribute("number")) != null ? _a : "1";
+        clefByNo.set(no, clef.cloneNode(true));
+      }
+    }
+    if (measure === targetMeasure) break;
+  }
+  const doc = targetMeasure.ownerDocument;
+  const effective = doc.createElement("attributes");
+  if (divisions) effective.appendChild(divisions);
+  if (key) effective.appendChild(key);
+  if (time) effective.appendChild(time);
+  if (staves) effective.appendChild(staves);
+  for (const no of Array.from(clefByNo.keys()).sort()) {
+    const clef = clefByNo.get(no);
+    if (clef) effective.appendChild(clef);
+  }
+  return effective.childElementCount > 0 ? effective : null;
+};
+var mergeMissingEffectiveAttributes = (targetAttributes, effectiveAttributes) => {
+  var _a;
+  const ensureSingle = (selector) => {
+    if (targetAttributes.querySelector(`:scope > ${selector}`)) return;
+    const src = effectiveAttributes.querySelector(`:scope > ${selector}`);
+    if (src) targetAttributes.appendChild(src.cloneNode(true));
+  };
+  ensureSingle("divisions");
+  ensureSingle("key");
+  ensureSingle("time");
+  ensureSingle("staves");
+  const existingClefNos = new Set(
+    Array.from(targetAttributes.querySelectorAll(":scope > clef")).map((c) => {
+      var _a2;
+      return (_a2 = c.getAttribute("number")) != null ? _a2 : "1";
+    })
+  );
+  for (const clef of Array.from(effectiveAttributes.querySelectorAll(":scope > clef"))) {
+    const no = (_a = clef.getAttribute("number")) != null ? _a : "1";
+    if (existingClefNos.has(no)) continue;
+    targetAttributes.appendChild(clef.cloneNode(true));
+  }
+};
+var extractMeasureEditorDocument = (sourceDoc, partId, measureNumber) => {
+  const srcRoot = sourceDoc.querySelector("score-partwise");
+  const srcPart = findPartById(sourceDoc, partId);
+  if (!srcRoot || !srcPart) return null;
+  const srcMeasure = findMeasureByNumber(srcPart, measureNumber);
+  if (!srcMeasure) return null;
+  const patchedMeasure = srcMeasure.cloneNode(true);
+  const effectiveAttrs = collectEffectiveMeasureAttributes(srcPart, srcMeasure);
+  if (effectiveAttrs) {
+    const existing = patchedMeasure.querySelector(":scope > attributes");
+    if (!existing) {
+      patchedMeasure.insertBefore(effectiveAttrs, patchedMeasure.firstChild);
+    } else {
+      mergeMissingEffectiveAttributes(existing, effectiveAttrs);
+    }
+  }
+  const dst = document.implementation.createDocument("", "score-partwise", null);
+  const dstRoot = dst.documentElement;
+  if (!dstRoot) return null;
+  const version2 = srcRoot.getAttribute("version");
+  if (version2) dstRoot.setAttribute("version", version2);
+  const srcPartList = sourceDoc.querySelector("score-partwise > part-list");
+  const srcScorePart = findScorePartById(sourceDoc, partId);
+  if (srcPartList && srcScorePart) {
+    const dstPartList = dst.importNode(srcPartList, false);
+    const dstScorePart = dst.importNode(srcScorePart, true);
+    const dstPartName = dstScorePart.querySelector(":scope > part-name");
+    if (dstPartName) dstPartName.textContent = "";
+    const dstPartAbbreviation = dstScorePart.querySelector(":scope > part-abbreviation");
+    if (dstPartAbbreviation) dstPartAbbreviation.textContent = "";
+    dstPartList.appendChild(dstScorePart);
+    dstRoot.appendChild(dstPartList);
+  }
+  const dstPart = dst.importNode(srcPart, false);
+  dstPart.appendChild(dst.importNode(patchedMeasure, true));
+  dstRoot.appendChild(dstPart);
+  return dst;
+};
+var replaceMeasureInMainDocument = (mainDoc, partId, measureNumber, measureDoc) => {
+  const replacementMeasure = measureDoc.querySelector("part > measure");
+  if (!replacementMeasure) return null;
+  const targetPart = findPartById(mainDoc, partId);
+  if (!targetPart) return null;
+  const targetMeasure = findMeasureByNumber(targetPart, measureNumber);
+  if (!targetMeasure) return null;
+  const replacementForMain = replacementMeasure.cloneNode(true);
+  const replacementAttrs = replacementForMain.querySelector(":scope > attributes");
+  const targetAttrs = targetMeasure.querySelector(":scope > attributes");
+  if (replacementAttrs && !targetAttrs) {
+    replacementAttrs.remove();
+  }
+  const next = cloneXmlDocument(mainDoc);
+  const nextPart = findPartById(next, partId);
+  if (!nextPart) return null;
+  const nextTargetMeasure = findMeasureByNumber(nextPart, measureNumber);
+  if (!nextTargetMeasure) return null;
+  nextTargetMeasure.replaceWith(next.importNode(replacementForMain, true));
+  return next;
+};
 
 // src/ts/score-features/durations.ts
 var normalizeDotCount = (value) => {
@@ -15048,6 +15194,14 @@ var findFirstEntryByExtensions = (entries, extensions) => {
   }
   return null;
 };
+var listRootEntriesByExtensions = (entries, extensions) => {
+  const normalized = normalizeZipExtensions(extensions);
+  if (!normalized.length) return [];
+  return entries.filter((entry) => {
+    if (entry.path.includes("/")) return false;
+    return zipEntryPathHasAnyExtension(entry, normalized);
+  });
+};
 var parseContainerRootFilePath = (containerXmlText) => {
   var _a, _b;
   const doc = new DOMParser().parseFromString(containerXmlText, "application/xml");
@@ -15282,6 +15436,18 @@ var extractTextFromZipByExtensions = async (archiveBuffer, extensions) => {
     throw new Error(`No matching entry was found for extensions: ${extensions.join(", ")}`);
   }
   return extractEntryText(archiveBytes, entry);
+};
+var listZipRootEntryPathsByExtensions = async (archiveBuffer, extensions) => {
+  const { entries } = readNonEmptyZipArchive(archiveBuffer);
+  return listRootEntriesByExtensions(entries, extensions).map((entry) => entry.path);
+};
+var extractZipEntryBytesByPath = async (archiveBuffer, entryPath) => {
+  const { archiveBytes, entries } = readNonEmptyZipArchive(archiveBuffer);
+  const entry = findEntryByPath(entries, entryPath);
+  if (!entry) {
+    throw new Error(`ZIP entry not found: ${entryPath}`);
+  }
+  return extractEntryBytes(archiveBytes, entry);
 };
 
 // src/ts/load-input.ts
@@ -22823,6 +22989,104 @@ var buildPlaybackEventsFromMusicXmlDoc = (doc, ticksPerQuarter, options = {}) =>
   return { tempo, events };
 };
 
+// src/ts/measure-operations.ts
+var extractMeasureEditorMusicXml = (sourceXml, partId, measureNumber) => {
+  const sourceDoc = parseMusicXmlDocument(sourceXml);
+  if (!sourceDoc) return null;
+  const extractedDoc = extractMeasureEditorDocument(sourceDoc, partId, measureNumber);
+  return extractedDoc ? serializeMusicXmlDocument(extractedDoc) : null;
+};
+var replaceMeasureInMusicXml = (sourceXml, partId, measureNumber, measureXml) => {
+  const mainDoc = parseMusicXmlDocument(sourceXml);
+  const measureDoc = parseMusicXmlDocument(measureXml);
+  if (!mainDoc || !measureDoc) return null;
+  const mergedDoc = replaceMeasureInMainDocument(mainDoc, partId, measureNumber, measureDoc);
+  return mergedDoc ? serializeMusicXmlDocument(mergedDoc) : null;
+};
+var toPositiveInteger = (value) => {
+  if (!Number.isFinite(value)) return null;
+  const rounded = Math.round(value);
+  return rounded > 0 ? rounded : null;
+};
+var resolveEffectiveStavesAtEnd = (part) => {
+  var _a, _b, _c;
+  const measures = Array.from(part.querySelectorAll(":scope > measure"));
+  let staves = 1;
+  for (const measure of measures) {
+    const text = (_c = (_b = (_a = measure.querySelector(":scope > attributes > staves")) == null ? void 0 : _a.textContent) == null ? void 0 : _b.trim()) != null ? _c : "";
+    const parsed = Number(text);
+    if (Number.isInteger(parsed) && parsed > 0) staves = parsed;
+  }
+  return staves;
+};
+var resolveHasTrebleBassGrandStaffAtEnd = (part) => {
+  var _a, _b, _c, _d, _e, _f;
+  const measures = Array.from(part.querySelectorAll(":scope > measure"));
+  let clef1 = "";
+  let clef2 = "";
+  for (const measure of measures) {
+    const nextClef1 = (_c = (_b = (_a = measure.querySelector(':scope > attributes > clef[number="1"] > sign')) == null ? void 0 : _a.textContent) == null ? void 0 : _b.trim()) != null ? _c : "";
+    const nextClef2 = (_f = (_e = (_d = measure.querySelector(':scope > attributes > clef[number="2"] > sign')) == null ? void 0 : _d.textContent) == null ? void 0 : _e.trim()) != null ? _f : "";
+    if (nextClef1) clef1 = nextClef1;
+    if (nextClef2) clef2 = nextClef2;
+  }
+  return clef1 === "G" && clef2 === "F";
+};
+var createMeasureRestNoteXml = (duration, voice, staff) => {
+  return [
+    "<note>",
+    '<rest measure="yes"/>',
+    `<duration>${duration}</duration>`,
+    `<voice>${voice}</voice>`,
+    staff ? `<staff>${staff}</staff>` : "",
+    "</note>"
+  ].join("");
+};
+var deriveNextMeasureNumber = (part) => {
+  var _a, _b, _c;
+  const measures = Array.from(part.querySelectorAll(":scope > measure"));
+  const lastMeasure = (_a = measures[measures.length - 1]) != null ? _a : null;
+  if (!lastMeasure) return "1";
+  const raw = (_c = (_b = lastMeasure.getAttribute("number")) == null ? void 0 : _b.trim()) != null ? _c : "";
+  const numeric = Number(raw);
+  if (Number.isInteger(numeric) && numeric >= 0) return String(numeric + 1);
+  return String(measures.length + 1);
+};
+var appendMeasureToMusicXml = (sourceXml) => {
+  var _a, _b, _c, _d, _e;
+  const doc = parseMusicXmlDocument(sourceXml);
+  if (!doc) return null;
+  const parts = Array.from(doc.querySelectorAll("score-partwise > part"));
+  if (parts.length === 0) return null;
+  for (const part of parts) {
+    const measures = Array.from(part.querySelectorAll(":scope > measure"));
+    const lastMeasure = (_a = measures[measures.length - 1]) != null ? _a : null;
+    if (!lastMeasure) continue;
+    const capacity = (_b = toPositiveInteger(getMeasureCapacity(lastMeasure))) != null ? _b : 3840;
+    const nextNumber = deriveNextMeasureNumber(part);
+    const staves = resolveEffectiveStavesAtEnd(part);
+    const isGrandStaff = staves >= 2 && resolveHasTrebleBassGrandStaffAtEnd(part);
+    const measure = doc.createElement("measure");
+    measure.setAttribute("number", nextNumber);
+    if (isGrandStaff) {
+      const lane1 = (_c = parseMusicXmlDocument(createMeasureRestNoteXml(capacity, "1", "1"))) == null ? void 0 : _c.querySelector("note");
+      const backup = doc.createElement("backup");
+      const backupDuration = doc.createElement("duration");
+      backupDuration.textContent = String(capacity);
+      backup.appendChild(backupDuration);
+      const lane2 = (_d = parseMusicXmlDocument(createMeasureRestNoteXml(capacity, "1", "2"))) == null ? void 0 : _d.querySelector("note");
+      if (lane1) measure.appendChild(doc.importNode(lane1, true));
+      measure.appendChild(backup);
+      if (lane2) measure.appendChild(doc.importNode(lane2, true));
+    } else {
+      const rest = (_e = parseMusicXmlDocument(createMeasureRestNoteXml(capacity, "1", null))) == null ? void 0 : _e.querySelector("note");
+      if (rest) measure.appendChild(doc.importNode(rest, true));
+    }
+    part.appendChild(measure);
+  }
+  return serializeMusicXmlDocument(doc);
+};
+
 // src/ts/musicxml-state.ts
 var buildIndexedMeasureNotes = (xmlText) => {
   var _a, _b, _c, _d, _e;
@@ -23072,6 +23336,40 @@ var diffMusicXmlState = (beforeXml, afterXml) => {
     before: beforeSummary,
     after: afterSummary
   };
+};
+
+// src/ts/musicxml-output.ts
+var shouldRemoveMksField = (fieldName, settings) => {
+  const lowered = fieldName.trim().toLowerCase();
+  if (!lowered.startsWith("mks:")) return false;
+  if (lowered.startsWith("mks:meta:")) return !settings.keepMeta;
+  if (lowered.startsWith("mks:src:")) return !settings.keepSrc;
+  if (lowered.startsWith("mks:dbg:")) return !settings.keepDbg;
+  return false;
+};
+var stripMetadataFromMusicXml = (xml, settings) => {
+  var _a;
+  if (settings.keepMeta && settings.keepSrc && settings.keepDbg) return xml;
+  const doc = parseMusicXmlDocument(xml);
+  if (!doc) return xml;
+  const fields = Array.from(
+    doc.querySelectorAll(
+      'part > measure > attributes > miscellaneous > miscellaneous-field[name^="mks:"]'
+    )
+  );
+  for (const field of fields) {
+    const name = (_a = field.getAttribute("name")) != null ? _a : "";
+    if (shouldRemoveMksField(name, settings)) field.remove();
+  }
+  for (const miscellaneous of Array.from(
+    doc.querySelectorAll("part > measure > attributes > miscellaneous")
+  )) {
+    if (!miscellaneous.querySelector("miscellaneous-field")) miscellaneous.remove();
+  }
+  for (const attributes of Array.from(doc.querySelectorAll("part > measure > attributes"))) {
+    if (attributes.children.length === 0) attributes.remove();
+  }
+  return serializeMusicXmlDocument(doc);
 };
 
 // core/accidentalSpelling.ts
@@ -27471,7 +27769,7 @@ var buildPlaybackPlan = (xmlText, options) => {
 
 // src/ts/verovio-render.ts
 var DEFAULT_SLUR_NUMBER = "1";
-var cloneXmlDocument = (doc) => {
+var cloneXmlDocument2 = (doc) => {
   const cloned = doc.implementation.createDocument("", "", null);
   const root = cloned.importNode(doc.documentElement, true);
   cloned.appendChild(root);
@@ -27547,7 +27845,7 @@ var sanitizeSlursForRender = (doc) => {
   }
 };
 var prepareMusicXmlDomForVerovio = (doc) => {
-  const renderDoc = cloneXmlDocument(doc);
+  const renderDoc = cloneXmlDocument2(doc);
   sanitizeSlursForRender(renderDoc);
   return renderDoc;
 };
@@ -27672,8 +27970,8 @@ var convertMusicXmlToVsqxWithBridge = (runtime, musicXmlText, options) => {
 };
 
 // src/ts/runtime-api.ts
-var version = "0.7.0";
-var runtimeApiVersion = "miku-score/runtime-api@1";
+var version = "0.8.0";
+var runtimeApiVersion = "miku-score/runtime-api@2";
 var embeddedModulePaths = Object.freeze([
   "core/ScoreCore.ts",
   "core/accidentalSpelling.ts",
@@ -27693,7 +27991,9 @@ var embeddedModulePaths = Object.freeze([
   "src/ts/midi-io.ts",
   "src/ts/midi-musescore-io.ts",
   "src/ts/musescore-io.ts",
+  "src/ts/measure-operations.ts",
   "src/ts/musicxml-io.ts",
+  "src/ts/musicxml-output.ts",
   "src/ts/musicxml-state.ts",
   "src/ts/new-score.ts",
   "src/ts/output-encoding.ts",
@@ -27738,6 +28038,18 @@ var failure2 = (diagnostics, warnings = []) => ({
 });
 var diagnostic2 = (code, message) => ({ code, message });
 var errorMessage2 = (error) => error instanceof Error ? error.message : String(error);
+var isPlainObject = (value) => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+};
+var hasOnlyOptionalBooleanProperties = (value, propertyNames) => {
+  if (!isPlainObject(value)) return false;
+  return Object.entries(value).every(
+    ([name, propertyValue]) => propertyNames.includes(name) && (propertyValue === void 0 || typeof propertyValue === "boolean")
+  );
+};
+var invalidRequest = (message) => {
+  return failure2([diagnostic2("MKS_INPUT_INVALID", message)]);
+};
 var withRuntimeResult = (operation, failureCode = "MKS_CONVERSION_FAILED") => {
   try {
     return success2(operation());
@@ -27752,6 +28064,17 @@ var withAsyncRuntimeResult = async (operation, failureCode = "MKS_CONVERSION_FAI
     return failure2([diagnostic2(failureCode, errorMessage2(error))]);
   }
 };
+var validateMusicXmlValue = (xml) => {
+  var _a, _b;
+  const core = new ScoreCore();
+  core.load(xml);
+  const saved = core.save();
+  if (!saved.ok) {
+    throw new Error((_b = (_a = saved.diagnostics[0]) == null ? void 0 : _a.message) != null ? _b : "MusicXML validation failed.");
+  }
+  return saved.xml;
+};
+var validateMusicXmlResult = (xml) => withRuntimeResult(() => validateMusicXmlValue(xml), "MKS_MUSICXML_INVALID");
 var normalizeCapabilities = (capabilities) => {
   var _a, _b, _c;
   return {
@@ -27773,8 +28096,85 @@ var defaultSvgRenderOptions = () => ({
   footer: "none",
   header: "none"
 });
+var normalizeMetadataOutputSettings = (options) => {
+  var _a, _b, _c;
+  if (options !== void 0 && (!isPlainObject(options) || !Object.keys(options).every(
+    (key) => key === "midi" || key === "vsqx" || key === "svg" || key === "musicXml"
+  ))) {
+    return invalidRequest("Export options contain an unsupported property.");
+  }
+  const musicXml = options == null ? void 0 : options.musicXml;
+  if (musicXml === void 0) {
+    return success2({ keepMeta: true, keepSrc: true, keepDbg: true });
+  }
+  if (!isPlainObject(musicXml) || !Object.keys(musicXml).every((key) => key === "metadata")) {
+    return invalidRequest("musicXml export options must contain only an optional metadata object.");
+  }
+  const metadata = musicXml.metadata;
+  if (metadata === void 0) {
+    return success2({ keepMeta: true, keepSrc: true, keepDbg: true });
+  }
+  if (!hasOnlyOptionalBooleanProperties(metadata, ["roundTrip", "source", "debug"])) {
+    return invalidRequest("MusicXML metadata options must be boolean roundTrip, source, or debug values.");
+  }
+  return success2({
+    keepMeta: (_a = metadata.roundTrip) != null ? _a : true,
+    keepSrc: (_b = metadata.source) != null ? _b : true,
+    keepDbg: (_c = metadata.debug) != null ? _c : true
+  });
+};
+var validateRuntimeImportOptions = (request) => {
+  const options = request.options;
+  if (options === void 0) return null;
+  if (!isPlainObject(options) || !Object.keys(options).every(
+    (key) => key === "importMetadata" || key === "midi" || key === "vsqx"
+  )) {
+    return invalidRequest("Import options contain an unsupported property.");
+  }
+  if (options.importMetadata !== void 0) {
+    if (!hasOnlyOptionalBooleanProperties(options.importMetadata, ["source", "debug"])) {
+      return invalidRequest("Import metadata options must be boolean source or debug values.");
+    }
+    if (!["abc", "midi", "mei", "lilypond", "musescore", "mscz"].includes(request.format)) {
+      return invalidRequest(`Import metadata options are not supported for ${request.format}.`);
+    }
+  }
+  if (options.midi !== void 0) {
+    if (request.format !== "midi" || !isPlainObject(options.midi)) {
+      return invalidRequest("MIDI import options are supported only for MIDI input.");
+    }
+    if (!Object.keys(options.midi).every((key) => key === "quantizeGrid" || key === "tripletAwareQuantize")) {
+      return invalidRequest("MIDI import options contain an unsupported property.");
+    }
+    const quantizeGrid = options.midi.quantizeGrid;
+    if (quantizeGrid !== void 0 && !["auto", "1/8", "1/16", "1/32", "1/64"].includes(String(quantizeGrid))) {
+      return invalidRequest("MIDI quantizeGrid must be auto, 1/8, 1/16, 1/32, or 1/64.");
+    }
+    if (options.midi.tripletAwareQuantize !== void 0 && typeof options.midi.tripletAwareQuantize !== "boolean") {
+      return invalidRequest("MIDI tripletAwareQuantize must be a boolean.");
+    }
+  }
+  if (options.vsqx !== void 0) {
+    if (request.format !== "vsqx" || !isPlainObject(options.vsqx)) {
+      return invalidRequest("VSQX import options are supported only for VSQX input.");
+    }
+    if (!Object.keys(options.vsqx).every((key) => key === "defaultLyric") || options.vsqx.defaultLyric !== void 0 && typeof options.vsqx.defaultLyric !== "string") {
+      return invalidRequest("VSQX defaultLyric must be a string.");
+    }
+  }
+  return null;
+};
+var validateArchiveExtensions = (extensions) => {
+  if (!Array.isArray(extensions) || extensions.length === 0 || !extensions.every((extension) => typeof extension === "string" && extension.trim().length > 0)) {
+    return invalidRequest("Archive extensions must be a non-empty array of strings.");
+  }
+  return extensions.map((extension) => extension.trim());
+};
 var createRuntimeApi = (capabilities) => {
   const importToMusicXml = async (request) => {
+    var _a;
+    const invalidOptions = validateRuntimeImportOptions(request);
+    if (invalidOptions) return invalidOptions;
     if (request.format === "vsqx" && !capabilities.vsqxBridge) {
       return failure2([diagnostic2(
         "MKS_CAPABILITY_VSQX_UNAVAILABLE",
@@ -27782,14 +28182,38 @@ var createRuntimeApi = (capabilities) => {
       )]);
     }
     try {
+      const importMetadata = (_a = request.options) == null ? void 0 : _a.importMetadata;
       const converted = await convertLoadInputToMusicXml(request, {
-        convertAbcToMusicXml,
-        convertMeiToMusicXml,
-        convertLilyPondToMusicXml,
-        convertMuseScoreToMusicXml,
+        convertAbcToMusicXml: (source) => convertAbcToMusicXml(source, {
+          sourceMetadata: importMetadata == null ? void 0 : importMetadata.source,
+          debugMetadata: importMetadata == null ? void 0 : importMetadata.debug
+        }),
+        convertMeiToMusicXml: (source) => convertMeiToMusicXml(source, {
+          sourceMetadata: importMetadata == null ? void 0 : importMetadata.source,
+          debugMetadata: importMetadata == null ? void 0 : importMetadata.debug
+        }),
+        convertLilyPondToMusicXml: (source) => convertLilyPondToMusicXml(source, {
+          sourceMetadata: importMetadata == null ? void 0 : importMetadata.source,
+          debugMetadata: importMetadata == null ? void 0 : importMetadata.debug
+        }),
+        convertMuseScoreToMusicXml: (source) => convertMuseScoreToMusicXml(source, {
+          sourceMetadata: importMetadata == null ? void 0 : importMetadata.source,
+          debugMetadata: importMetadata == null ? void 0 : importMetadata.debug
+        }),
         formatImportedMusicXml: normalizeImportedMusicXmlText,
-        convertVsqxToMusicXml: (vsqxText) => convertVsqxToMusicXmlWithBridge(capabilities.vsqxBridge, vsqxText),
-        convertMidiToMusicXml
+        convertVsqxToMusicXml: (vsqxText) => {
+          var _a2;
+          return convertVsqxToMusicXmlWithBridge(capabilities.vsqxBridge, vsqxText, (_a2 = request.options) == null ? void 0 : _a2.vsqx);
+        },
+        convertMidiToMusicXml: (bytes) => {
+          var _a2, _b, _c, _d;
+          return convertMidiToMusicXml(bytes, {
+            quantizeGrid: (_b = (_a2 = request.options) == null ? void 0 : _a2.midi) == null ? void 0 : _b.quantizeGrid,
+            tripletAwareQuantize: (_d = (_c = request.options) == null ? void 0 : _c.midi) == null ? void 0 : _d.tripletAwareQuantize,
+            sourceMetadata: importMetadata == null ? void 0 : importMetadata.source,
+            debugMetadata: importMetadata == null ? void 0 : importMetadata.debug
+          });
+        }
       });
       if (!converted.ok) {
         return failure2(
@@ -27804,7 +28228,10 @@ var createRuntimeApi = (capabilities) => {
   };
   const exportFromMusicXml = async (request) => {
     var _a, _b;
-    const doc = parseMusicXmlDocument(request.xml);
+    const metadataSettings = normalizeMetadataOutputSettings(request.options);
+    if (!metadataSettings.ok) return metadataSettings;
+    const xml = stripMetadataFromMusicXml(request.xml, metadataSettings.value);
+    const doc = parseMusicXmlDocument(xml);
     if (!doc) {
       return failure2([diagnostic2("MKS_MUSICXML_INVALID", "Input is not a valid MusicXML document.")]);
     }
@@ -27831,16 +28258,16 @@ var createRuntimeApi = (capabilities) => {
       var _a2, _b2, _c, _d, _e, _f, _g, _h, _i;
       switch (request.format) {
         case "musicxml":
-          return encodeMusicXmlOutput(request.xml);
+          return encodeMusicXmlOutput(xml);
         case "mxl":
-          return encodeMusicXmlOutput(request.xml, { compressed: true });
+          return encodeMusicXmlOutput(xml, { compressed: true });
         case "abc": {
-          const output = encodeAbcOutput(request.xml, exportMusicXmlDomToAbc);
+          const output = encodeAbcOutput(xml, exportMusicXmlDomToAbc);
           if (output === null) throw new Error("Failed to export ABC.");
           return output;
         }
         case "midi": {
-          const output = encodeMidiOutput(request.xml, {
+          const output = encodeMidiOutput(xml, {
             ticksPerQuarter: (_a2 = midiOptions.ticksPerQuarter) != null ? _a2 : 480,
             programPreset: (_b2 = midiOptions.programPreset) != null ? _b2 : "electric_piano_2",
             exportProfile: (_c = midiOptions.exportProfile) != null ? _c : "safe",
@@ -27858,25 +28285,25 @@ var createRuntimeApi = (capabilities) => {
         case "vsqx": {
           const output = convertMusicXmlToVsqxWithBridge(
             capabilities.vsqxBridge,
-            request.xml,
+            xml,
             (_f = request.options) == null ? void 0 : _f.vsqx
           );
           if (!output.ok) throw new Error((_h = (_g = output.diagnostic) == null ? void 0 : _g.message) != null ? _h : "Failed to export VSQX.");
           return encodeVsqxOutput(output.vsqx);
         }
         case "mei": {
-          const output = encodeMeiOutput(request.xml, exportMusicXmlDomToMei);
+          const output = encodeMeiOutput(xml, exportMusicXmlDomToMei);
           if (output === null) throw new Error("Failed to export MEI.");
           return output;
         }
         case "lilypond": {
-          const output = encodeLilyPondOutput(request.xml, exportMusicXmlDomToLilyPond);
+          const output = encodeLilyPondOutput(xml, exportMusicXmlDomToLilyPond);
           if (output === null) throw new Error("Failed to export LilyPond.");
           return output;
         }
         case "musescore":
         case "mscz": {
-          const output = await encodeMuseScoreOutput(request.xml, exportMusicXmlDomToMuseScore, {
+          const output = await encodeMuseScoreOutput(xml, exportMusicXmlDomToMuseScore, {
             compressed: request.format === "mscz"
           });
           if (output === null) throw new Error("Failed to export MuseScore.");
@@ -27895,19 +28322,8 @@ var createRuntimeApi = (capabilities) => {
   return Object.freeze({
     score: Object.freeze({
       createNewMusicXml: (options = {}) => withRuntimeResult(() => createNewScoreMusicXml(options), "MKS_INPUT_INVALID"),
-      loadMusicXml: (xml) => withRuntimeResult(() => {
-        const core = new ScoreCore();
-        core.load(xml);
-        return core.save().xml;
-      }, "MKS_MUSICXML_INVALID"),
-      saveMusicXml: (xml) => withRuntimeResult(() => {
-        var _a, _b;
-        const core = new ScoreCore();
-        core.load(xml);
-        const saved = core.save();
-        if (!saved.ok) throw new Error((_b = (_a = saved.diagnostics[0]) == null ? void 0 : _a.message) != null ? _b : "Failed to save MusicXML.");
-        return saved.xml;
-      }, "MKS_MUSICXML_INVALID")
+      loadMusicXml: validateMusicXmlResult,
+      saveMusicXml: validateMusicXmlResult
     }),
     state: Object.freeze({
       summarize: (xml) => withRuntimeResult(
@@ -27919,6 +28335,35 @@ var createRuntimeApi = (capabilities) => {
       applyCommand: (xml, command) => withRuntimeResult(() => applyMusicXmlCommand(xml, command), "MKS_MUSICXML_INVALID"),
       diff: (beforeXml, afterXml) => withRuntimeResult(() => diffMusicXmlState(beforeXml, afterXml), "MKS_MUSICXML_INVALID")
     }),
+    measure: Object.freeze({
+      extractEditorMusicXml: (xml, location) => {
+        const validated = validateMusicXmlResult(xml);
+        if (!validated.ok) return validated;
+        if (!location || typeof location.partId !== "string" || typeof location.measureNumber !== "string") {
+          return invalidRequest("Measure extraction requires string partId and measureNumber values.");
+        }
+        const editorXml = extractMeasureEditorMusicXml(xml, location.partId, location.measureNumber);
+        return editorXml === null ? invalidRequest("The requested measure could not be extracted.") : success2(editorXml);
+      },
+      replaceEditorMusicXml: (xml, request) => {
+        var _a;
+        const validated = validateMusicXmlResult(xml);
+        if (!validated.ok) return validated;
+        const validatedEditor = validateMusicXmlResult((_a = request == null ? void 0 : request.editorXml) != null ? _a : "");
+        if (!validatedEditor.ok) return validatedEditor;
+        if (typeof request.partId !== "string" || typeof request.measureNumber !== "string") {
+          return invalidRequest("Measure replacement requires string partId and measureNumber values.");
+        }
+        const replacedXml = replaceMeasureInMusicXml(xml, request.partId, request.measureNumber, request.editorXml);
+        return replacedXml === null ? invalidRequest("The requested measure could not be replaced.") : validateMusicXmlResult(replacedXml);
+      },
+      appendMeasure: (xml) => {
+        const validated = validateMusicXmlResult(xml);
+        if (!validated.ok) return validated;
+        const appendedXml = appendMeasureToMusicXml(xml);
+        return appendedXml === null ? invalidRequest("A measure could not be appended to this MusicXML document.") : validateMusicXmlResult(appendedXml);
+      }
+    }),
     convert: Object.freeze({ importToMusicXml, exportFromMusicXml }),
     output: Object.freeze({
       encodeMusicXml: (xml, options = {}) => withAsyncRuntimeResult(() => encodeMusicXmlOutput(xml, options), "MKS_OUTPUT_FAILED"),
@@ -27926,6 +28371,27 @@ var createRuntimeApi = (capabilities) => {
       encodeSvg: (svg) => withRuntimeResult(() => encodeSvgOutput(svg), "MKS_OUTPUT_FAILED"),
       encodeJson: (json) => withRuntimeResult(() => encodeJsonOutput(json), "MKS_OUTPUT_FAILED"),
       encodeVsqx: (vsqx) => withRuntimeResult(() => encodeVsqxOutput(vsqx), "MKS_OUTPUT_FAILED")
+    }),
+    archive: Object.freeze({
+      listRootEntryPaths: async (bytes, options) => {
+        if (!(bytes instanceof Uint8Array)) return invalidRequest("Archive bytes must be a Uint8Array.");
+        const extensions = validateArchiveExtensions(options == null ? void 0 : options.extensions);
+        if (!Array.isArray(extensions)) return extensions;
+        return withAsyncRuntimeResult(
+          () => listZipRootEntryPathsByExtensions(bytesToArrayBuffer(bytes), extensions),
+          "MKS_ARCHIVE_INVALID"
+        );
+      },
+      extractEntryBytes: async (bytes, options) => {
+        if (!(bytes instanceof Uint8Array)) return invalidRequest("Archive bytes must be a Uint8Array.");
+        if (!options || typeof options.path !== "string" || options.path.trim().length === 0) {
+          return invalidRequest("Archive extraction requires a non-empty path.");
+        }
+        return withAsyncRuntimeResult(
+          () => extractZipEntryBytesByPath(bytesToArrayBuffer(bytes), options.path),
+          "MKS_ARCHIVE_INVALID"
+        );
+      }
     }),
     playback: Object.freeze({
       buildPlan: (xml, options) => {
