@@ -8,10 +8,14 @@ const ROOT = process.cwd();
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(ROOT, "package.json"), "utf8"));
 const lock = readRuntimeLock(ROOT);
 
-assert.equal(packageJson.version, lock.package_version);
+assert.equal(packageJson.version, "0.7.1");
+assert.equal(lock.package_version, "0.7.0");
+assert.doesNotThrow(
+  () => validateWebPackageVersion(packageJson, lock),
+);
 assert.throws(
-  () => validateWebPackageVersion({ ...packageJson, version: "0.0.0" }, lock),
-  /does not match runtime/,
+  () => validateWebPackageVersion({ ...packageJson, version: "0.7" }, lock),
+  /stable Semantic Version/,
 );
 
-console.log(`[smoke:runtime-lock] ok package ${packageJson.version} follows ${lock.release_tag}`);
+console.log(`[smoke:runtime-lock] ok Web package ${packageJson.version} uses runtime ${lock.release_tag}`);

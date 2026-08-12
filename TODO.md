@@ -4,7 +4,7 @@
 
 - `miku-score` browser runtime `v0.7.0` is published with its manifest and checksums.
 - This repository pins `miku-score-runtime-0.7.0.mjs` in `runtime/miku-score-runtime.lock.json`.
-- The Web App version is `0.7.0` and must continue to match the pinned runtime package version.
+- The Web App version is `0.7.1`; it is versioned independently from the pinned `v0.7.0` runtime package.
 - The initial runtime-first Web bootstrap was merged by PR #1 and tagged `v0.7.0`.
 - Current development continues on `devel-tiga0810xeg` from the merged `origin/devel`.
 
@@ -33,7 +33,7 @@
 ## Completed bootstrap
 
 - [x] Pin a released runtime by tag, package version, asset name, and SHA-256.
-- [x] Reject a Web App package version that differs from the pinned runtime version.
+- [x] Validate the Web App package version and pinned runtime version independently.
 - [x] Fetch and verify the public Release asset without a local override.
 - [x] Embed the verified runtime before Web-owned code in the generated single-file `index.html`.
 - [x] Keep runtime download and cache activity out of the deployed browser.
