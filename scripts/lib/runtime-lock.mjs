@@ -70,7 +70,9 @@ export function verifyRuntimeBytes(bytes, lock) {
     throw new Error(`miku-score runtime sha256 mismatch: expected ${lock.sha256}, actual ${sha256}`);
   }
   const source = Buffer.from(bytes).toString("utf8");
-  if (!source.includes("loadMikuScoreRuntime") || !source.includes("miku-score/runtime-api@1")) {
+  if (!source.includes("loadMikuScoreRuntime") ||
+    !source.includes("runtimeApiVersion") ||
+    !/miku-score\/runtime-api@[1-9][0-9]*/.test(source)) {
     throw new Error("miku-score runtime public loader exports are missing");
   }
   return sha256;

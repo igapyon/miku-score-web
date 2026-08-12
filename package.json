@@ -9,7 +9,13 @@
   "scripts": {
     "runtime:fetch": "node scripts/fetch-runtime.mjs",
     "build": "node scripts/build-web.mjs",
-    "test": "node scripts/smoke-runtime-lock.mjs && node scripts/build-web.mjs && node scripts/smoke-offline.mjs",
-    "test:offline": "node scripts/smoke-runtime-lock.mjs && node scripts/build-web.mjs && node scripts/smoke-offline.mjs"
+    "screenshot": "node scripts/capture-screenshot.mjs",
+    "test:browser": "node scripts/build-web.mjs && node scripts/smoke-browser-e2e.mjs",
+    "test": "node scripts/smoke-runtime-lock.mjs && node scripts/smoke-verovio-browser.mjs && node scripts/smoke-vsqx-browser.mjs && node scripts/smoke-browser-synth.mjs && node scripts/smoke-midi-output-options.mjs && node scripts/smoke-svg-click-map.mjs && node scripts/smoke-edit-commands.mjs && node scripts/smoke-score-selection.mjs && node scripts/smoke-measure-navigation.mjs && node scripts/smoke-edit-selection.mjs && node scripts/smoke-browser-files.mjs && node scripts/smoke-runtime-v2.mjs && node scripts/smoke-browser-draft.mjs && node scripts/smoke-browser-settings.mjs && node scripts/smoke-verovio-runtime.mjs && node scripts/smoke-runtime-formats.mjs && node scripts/smoke-vsqx-runtime.mjs && node scripts/smoke-parity-fixtures.mjs && node scripts/build-web.mjs && node scripts/smoke-ui.mjs && node scripts/smoke-offline.mjs",
+    "test:offline": "node scripts/smoke-runtime-lock.mjs && node scripts/smoke-verovio-browser.mjs && node scripts/smoke-vsqx-browser.mjs && node scripts/smoke-browser-synth.mjs && node scripts/smoke-midi-output-options.mjs && node scripts/smoke-svg-click-map.mjs && node scripts/smoke-edit-commands.mjs && node scripts/smoke-score-selection.mjs && node scripts/smoke-measure-navigation.mjs && node scripts/smoke-edit-selection.mjs && node scripts/smoke-browser-files.mjs && node scripts/smoke-runtime-v2.mjs && node scripts/smoke-browser-draft.mjs && node scripts/smoke-browser-settings.mjs && node scripts/smoke-verovio-runtime.mjs && node scripts/smoke-runtime-formats.mjs && node scripts/smoke-vsqx-runtime.mjs && node scripts/smoke-parity-fixtures.mjs && node scripts/build-web.mjs && node scripts/smoke-ui.mjs && node scripts/smoke-offline.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "playwright": "1.61.1"
   }
 }

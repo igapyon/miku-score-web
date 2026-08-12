@@ -1,0 +1,90 @@
+{
+  "baseline": {
+    "runtimeVersion": "0.7.0",
+    "sourceFixture": "base.musicxml",
+    "sourceTag": "miku-score v0.7.0"
+  },
+  "summary": {
+    "kind": "musicxml_state_summary",
+    "title": null,
+    "part_count": 1,
+    "measure_count": 1,
+    "measure_numbers": ["1"],
+    "voices": ["1"]
+  },
+  "canonicalMusicXmlSha256": "0b298c85813af61202134c075b1e694677df597972b052aa5a2a1c4165e39619",
+  "abc": {
+    "text": "X:1\nT:miku-score\nM:4/4\nL:1/8\nK:C\nV:P1 name=\"Music\"\n\nV:P1\nC2 D2 E2 F2 |\n",
+    "sha256": "5fe933bb0585aa700506f8f38f8052d6d4e9fd67b44b95a2b83a0374ca6bd714"
+  },
+  "midi": {
+    "options": {
+      "ticksPerQuarter": 480,
+      "programPreset": "violin",
+      "forceProgramPreset": true,
+      "exportProfile": "musescore_parity"
+    },
+    "length": 558,
+    "sha256": "af8b2d5cd0a70f1c01d5da255f3c1f6a0b177fd92eefd014e77442acc3be978b"
+  },
+  "formatExports": {
+    "mxl": {
+      "archiveEntries": [
+        {
+          "name": "META-INF/container.xml",
+          "length": 244,
+          "sha256": "4e841acefe4cad53e80bbd62e2ac687b46f321ef2b628c0b2000e1f1e57cbb95"
+        },
+        {
+          "name": "score.musicxml",
+          "length": 935,
+          "sha256": "84193d5c86d444db42063d47d856847074597d547b53710df6027eca027b3d74"
+        }
+      ]
+    },
+    "musescore": {
+      "length": 1386,
+      "sha256": "c4e0d2cf554d1f06eb68a247ad2c41a5d8660278a07a239be049092fb3004a3d"
+    },
+    "mscz": {
+      "archiveEntries": [
+        {
+          "name": "score.mscx",
+          "length": 1386,
+          "sha256": "c4e0d2cf554d1f06eb68a247ad2c41a5d8660278a07a239be049092fb3004a3d"
+        }
+      ]
+    },
+    "vsqx": {
+      "options": {
+        "vsqx": {
+          "musicXml": { "defaultLyric": "み" },
+          "splitPartStaves": true
+        }
+      },
+      "length": 2525,
+      "sha256": "cc6dd5648a9c3b1ff732746d8d051c3a5d53c45d122fb16a10836d7233f0a3bb",
+      "requiredText": "<y>み</y>"
+    }
+  },
+  "edit": {
+    "command": {
+      "type": "change_to_pitch",
+      "targetNodeId": "n1",
+      "voice": "1",
+      "pitch": {
+        "step": "D",
+        "alter": 1,
+        "octave": 5
+      }
+    },
+    "changedNodeIds": ["n1"],
+    "affectedMeasureNumbers": ["1"],
+    "musicXmlSha256": "a7255651a3ecfc725f8db976e9de43f2609c39edde2221368ec914d6aeca5783"
+  },
+  "invalidMusicXml": {
+    "data": "<not-score/>",
+    "code": "MKS_MUSICXML_INVALID",
+    "message": "MusicXML root must be <score-partwise>."
+  }
+}

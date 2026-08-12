@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>miku-score Web</title>
-  <style>
-    body { font-family: sans-serif; margin: 1rem; max-width: 72rem; }
-    textarea { box-sizing: border-box; min-height: 14rem; width: 100%; }
-    .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
-    #status { min-height: 1.5rem; }
-  </style>
+  <style>/*__MIKU_SCORE_WEB_CSS__*/</style>
 </head>
 <body>
   <main>
     <h1>miku-score Web</h1>
     <p id="status">Loading verified miku-score runtime.</p>
+    <p id="localDraftStatus">No local draft is saved.</p>
+    <div class="actions">
+      <button id="clearLocalDraft" type="button" disabled>Clear local draft</button>
+      <button id="resetBrowserSettings" type="button">Reset browser settings</button>
+    </div>
     <label>ABC input<textarea id="abcInput">X:1
 T:miku-score Web bootstrap
 M:4/4
@@ -24,11 +24,138 @@ C D E F|</textarea></label>
     <div class="actions">
       <button id="convertAbc" type="button">Convert ABC to MusicXML</button>
       <button id="newScore" type="button">New score</button>
+      <button id="renderScore" type="button">Render SVG preview</button>
       <button id="downloadMidi" type="button">Download MIDI</button>
       <button id="buildPlaybackPlan" type="button">Build playback plan</button>
     </div>
+    <h2>Text source input</h2>
+    <div class="actions">
+      <label>Source format<select id="sourceFormat"><option value="musicxml">MusicXML</option><option value="abc">ABC</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option></select></label>
+      <button id="importSource" type="button">Import text source</button>
+      <label>Built-in sample<select id="builtInSample"><option value="1">Sample 1</option><option value="2">Sample 2</option><option value="3">Sample 3</option><option value="4">Sample 4</option><option value="6" selected>Sample 6</option><option value="7">Sample 7</option></select></label>
+      <button id="loadBuiltInSample" type="button">Load sample</button>
+    </div>
+    <label>Source text<textarea id="sourceInput" spellcheck="false">X:1
+M:4/4
+L:1/4
+K:C
+C D E F|</textarea></label>
+    <fieldset id="newScoreOptions">
+      <legend>New score options</legend>
+      <div class="actions">
+        <label><input id="newTemplatePianoGrandStaff" type="checkbox"> Piano grand staff</label>
+        <label>Parts<input id="newPartCount" type="number" min="1" max="16" step="1" value="1"></label>
+        <label>Time beats<input id="newTimeBeats" type="number" min="1" max="16" step="1" value="4"></label>
+        <label>Beat type<select id="newTimeBeatType"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select></label>
+        <label>Key signature<select id="newKeyFifths"><option value="-7">7 flats</option><option value="-6">6 flats</option><option value="-5">5 flats</option><option value="-4">4 flats</option><option value="-3">3 flats</option><option value="-2">2 flats</option><option value="-1">1 flat</option><option value="0" selected>C major / A minor</option><option value="1">1 sharp</option><option value="2">2 sharps</option><option value="3">3 sharps</option><option value="4">4 sharps</option><option value="5">5 sharps</option><option value="6">6 sharps</option><option value="7">7 sharps</option></select></label>
+      </div>
+      <div id="newPartClefList" aria-live="polite"></div>
+    </fieldset>
     <label>MusicXML output<textarea id="musicXmlOutput"></textarea></label>
+    <h2>File conversion</h2>
+    <div class="actions">
+      <label>Import format<select id="importFormat"><option value="auto">auto from file name</option><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="zip">ZIP root entry (runtime v2)</option></select></label>
+      <input id="scoreFile" type="file" accept=".musicxml,.xml,.mxl,.abc,.mid,.midi,.vsqx,.mei,.ly,.lilypond,.mscx,.mscz,.zip">
+      <button id="importFile" type="button">Import file</button>
+      <label id="zipEntrySelectLabel" hidden>ZIP root entry<select id="zipEntrySelect" disabled><option value="">(Select a ZIP file first)</option></select></label>
+      <label>Export format<select id="exportFormat"><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="svg">SVG</option></select></label>
+      <label><input id="exportMusicXmlAsXmlExtension" type="checkbox"> Use <code>.xml</code> for MusicXML</label>
+      <button id="exportFile" type="button">Export file</button>
+      <button id="exportAll" type="button">Download all formats (ZIP)</button>
+    </div>
+    <fieldset id="runtimeV2ImportPolicy" hidden disabled>
+      <legend>Runtime v2 import policy</legend>
+      <div class="actions">
+        <label><input id="importSourceMetadata" type="checkbox" checked> Preserve source metadata</label>
+        <label><input id="importDebugMetadata" type="checkbox" checked> Preserve debug metadata</label>
+        <label>MIDI quantize<select id="midiImportQuantizeGrid"><option value="auto">auto</option><option value="1/8">1/8</option><option value="1/16">1/16</option><option value="1/32">1/32</option><option value="1/64" selected>1/64</option></select></label>
+        <label><input id="midiImportTripletAware" type="checkbox" checked> MIDI triplet-aware quantize</label>
+        <label>VSQX import lyric<input id="vsqxImportDefaultLyric" type="text" value="ら" maxlength="32"></label>
+      </div>
+    </fieldset>
+    <fieldset id="runtimeV2ExportPolicy" hidden disabled>
+      <legend>Runtime v2 metadata output policy</legend>
+      <div class="actions">
+        <label><input id="exportKeepRoundTripMetadata" type="checkbox" checked> Keep round-trip metadata</label>
+        <label><input id="exportKeepSourceMetadata" type="checkbox" checked> Keep source metadata</label>
+        <label><input id="exportKeepDebugMetadata" type="checkbox" checked> Keep debug metadata</label>
+      </div>
+    </fieldset>
+    <h2>Selected note</h2>
+    <p id="selectedNoteMeta">Render the score, then click a note to edit it.</p>
+    <div class="actions">
+      <label>Measure<select id="measureSelect" disabled><option value="">(Render a score first)</option></select></label>
+      <label>Note<select id="noteSelect" disabled><option value="">(Render a score first)</option></select></label>
+    </div>
+    <fieldset id="pitchEditor" disabled>
+      <legend>Selected note editor</legend>
+      <label>Step<select id="pitchStep"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select></label>
+      <label>Alter<select id="pitchAlter"><option value="-2">double flat</option><option value="-1">flat</option><option value="0" selected>natural</option><option value="1">sharp</option><option value="2">double sharp</option></select></label>
+      <label>Octave<input id="pitchOctave" type="number" min="0" max="9" value="4"></label>
+      <button id="applyPitch" type="button">Apply pitch</button>
+      <label>Duration<input id="noteDuration" type="number" min="1" value="1"></label>
+      <button id="applyDuration" type="button">Apply duration</button>
+      <button id="insertNoteAfter" type="button">Insert note after</button>
+      <button id="splitNote" type="button">Split note</button>
+      <button id="convertRestToNote" type="button">Convert rest to note</button>
+      <button id="deleteNote" type="button">Delete note</button>
+    </fieldset>
+    <h2>Selected measure</h2>
+    <p id="selectedMeasureMeta">Render the score, then select a measure.</p>
+    <div class="actions">
+      <button id="previousMeasure" type="button" disabled>Previous measure</button>
+      <button id="nextMeasure" type="button" disabled>Next measure</button>
+      <button id="previousMeasurePart" type="button" disabled>Previous part</button>
+      <button id="nextMeasurePart" type="button" disabled>Next part</button>
+    </div>
+    <ul id="selectedMeasureNotes"></ul>
+    <fieldset id="measureEditor" hidden disabled>
+      <legend>Measure editor (runtime v2)</legend>
+      <p id="measureEditorStatus">Select a rendered measure, then load its isolated MusicXML.</p>
+      <label>Isolated measure MusicXML<textarea id="measureEditorXml" spellcheck="false"></textarea></label>
+      <div class="actions">
+        <button id="loadMeasureEditor" type="button">Load selected measure</button>
+        <button id="applyMeasureEditor" type="button" disabled>Apply measure edit</button>
+        <button id="discardMeasureEditor" type="button" disabled>Discard measure edit</button>
+        <button id="appendMeasure" type="button">Append measure</button>
+        <button id="downloadMeasureMusicXml" type="button" disabled>Download measure MusicXML</button>
+        <button id="downloadMeasureMidi" type="button" disabled>Download measure MIDI</button>
+        <button id="playMeasure" type="button" disabled>Play measure</button>
+      </div>
+    </fieldset>
+    <h2>Playback</h2>
+    <div class="actions">
+      <label>Waveform<select id="playbackWaveform"><option value="sine">sine</option><option value="triangle" selected>triangle</option><option value="square">square</option></select></label>
+      <label><input id="playbackUseMidiLike" type="checkbox" checked> MIDI-like plan</label>
+      <label>Grace timing<select id="graceTimingMode"><option value="before_beat" selected>before beat</option><option value="on_beat">on beat</option><option value="classical_equal">classical equal</option></select></label>
+      <label><input id="metricAccentEnabled" type="checkbox" checked> Metric accents</label>
+      <label>Accent amount<select id="metricAccentProfile"><option value="subtle" selected>subtle</option><option value="balanced">balanced</option><option value="strong">strong</option></select></label>
+      <button id="playScore" type="button">Play score</button>
+      <button id="stopPlayback" type="button" disabled>Stop</button>
+    </div>
+    <p id="playbackStatus">Playback: idle</p>
+    <h2>MIDI export</h2>
+    <div class="actions">
+      <label>Program<select id="midiProgram"><option value="electric_piano_2" selected>Electric piano 2</option><option value="acoustic_grand_piano">Acoustic grand piano</option><option value="electric_piano_1">Electric piano 1</option><option value="honky_tonk_piano">Honky-tonk piano</option><option value="harpsichord">Harpsichord</option><option value="clavinet">Clavinet</option><option value="drawbar_organ">Drawbar organ</option><option value="acoustic_guitar_nylon">Acoustic guitar (nylon)</option><option value="acoustic_bass">Acoustic bass</option><option value="violin">Violin</option><option value="string_ensemble_1">String ensemble</option><option value="synth_brass_1">Synth brass</option></select></label>
+      <label><input id="forceMidiProgramPreset" type="checkbox"> Override score program changes</label>
+      <label>Export profile<select id="midiExportProfile"><option value="safe">Safe</option><option value="musescore_parity" selected>MuseScore parity</option></select></label>
+      <label><input id="keepMidiRoundtripMetadata" type="checkbox" checked> Keep round-trip metadata</label>
+    </div>
+    <h2>VSQX export</h2>
+    <div class="actions">
+      <label>Default lyric<input id="vsqxDefaultLyric" type="text" value="ら" maxlength="32"></label>
+      <label><input id="vsqxSplitPartStaves" type="checkbox"> Split part staves</label>
+    </div>
+    <h2>Score preview</h2>
+    <p id="previewMeta">Preview has not been rendered.</p>
+    <div id="scorePreview" aria-live="polite"></div>
   </main>
+  <script>
+/*__VEROVIO_VENDOR__*/
+  </script>
+  <script>
+/*__VSQX_VENDOR__*/
+  </script>
   <script type="module">
 /*__MIKU_SCORE_RUNTIME__*/
 /*__MIKU_SCORE_WEB__*/
