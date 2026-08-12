@@ -6,9 +6,11 @@ single-file composition; score semantics and format conversion stay upstream.
 
 ## Runtime intake
 
-The Web App version follows the checked-in runtime lock, currently `v0.7.0`.
-The build rejects a package/runtime version mismatch. Fetch the published and
-SHA-256 verified runtime, then build and test the offline single-file app:
+The Web App is currently `0.7.1` and uses the checked-in `v0.7.0` runtime lock.
+The Web App and runtime are versioned independently; the build validates the
+Web App package version and the published runtime lock separately. Fetch the
+published and SHA-256 verified runtime, then build and test the offline
+single-file app:
 
 ```sh
 npm run runtime:fetch

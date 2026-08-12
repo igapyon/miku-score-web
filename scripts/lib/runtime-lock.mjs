@@ -19,10 +19,8 @@ export function validateWebPackageVersion(packageJson, lock) {
   if (!packageJson || typeof packageJson !== "object" || Array.isArray(packageJson)) {
     throw new TypeError("miku-score-web package must be an object");
   }
-  if (packageJson.version !== lock.package_version) {
-    throw new Error(
-      `miku-score-web package version ${packageJson.version ?? "missing"} does not match runtime ${lock.package_version}`,
-    );
+  if (typeof packageJson.version !== "string" || !/^\d+\.\d+\.\d+$/.test(packageJson.version)) {
+    throw new Error(`miku-score-web package version must be a stable Semantic Version: ${packageJson.version ?? "missing"}`);
   }
 }
 
