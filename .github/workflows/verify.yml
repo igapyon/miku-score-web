@@ -1,0 +1,29 @@
+name: Verify Web App
+
+on:
+  pull_request:
+  push:
+    branches:
+      - devel
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run runtime:fetch
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: git diff --check -- . ':!index.html'
+      - run: git diff --exit-code -- index.html
