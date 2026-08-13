@@ -70,13 +70,13 @@ Useful upstream references:
 - [x] Move new-score options (part count, clefs, key, meter, and piano grand staff) through the runtime facade.
 - [x] Move Rest-to-Note, selected-measure inspection, and part/measure navigation through the v0.7.0 runtime contract.
 - [x] Pin the published `v0.8.0` runtime and move the remaining measure editor, measure creation, and measure-scoped download/play actions through its measure API.
-  - [x] The capability-gated UI and adapter implementation passes the published `miku-score/runtime-api@2` local smoke coverage; remote CI remains.
+  - [x] The capability-gated UI and adapter implementation passes published `miku-score/runtime-api@2` local smoke coverage and merged-branch GitHub Actions verification.
 - [x] Move text source-mode controls for MusicXML, ABC, VSQX, MEI, LilyPond, and MuseScore through the runtime facade.
 - [x] Move all six bundled MusicXML samples into Web-owned single-file composition.
 - [x] Move local draft persistence, validated restore, and explicit discard as Web-owned browser storage.
 - [x] Move browser persistence and reset for published playback, MIDI, VSQX, and filename settings.
 - [x] Pin the published `v0.8.0` runtime and move ZIP root-entry selection through its archive API.
-  - [x] The capability-gated root-entry picker passes local `runtime-api@2` Chromium coverage without Web-local ZIP parsing; remote CI remains.
+  - [x] The capability-gated root-entry picker passes local `runtime-api@2` Chromium coverage without Web-local ZIP parsing and merged-branch GitHub Actions verification.
 - [x] Move playback controls and basic waveform/MIDI-like/grace/metric-accent settings; the Web Audio adapter consumes the runtime playback plan without moving audio scheduling upstream.
 - [x] Move all-format ZIP archive export through runtime conversion and `output.encodeZipBundle`.
 - [x] Move MIDI program, score-program override, export profile, grace/metric, and round-trip metadata policies through the runtime export request for both individual and ZIP downloads.
@@ -86,7 +86,7 @@ Useful upstream references:
 - [x] Represent historical MusicXML/MuseScore compression as explicit MXL/MSCZ output formats, including ZIP export.
 - [x] Pin the published `v0.8.0` runtime and move the three MusicXML metadata filters (`mks:meta`, `mks:src`, `mks:dbg`) through its shared export policy; see `docs/UPSTREAM_RUNTIME_GAPS.md`.
 - [x] Pin the published `v0.8.0` runtime and move source/debug import-metadata settings, MIDI quantize-grid/triplet-aware settings, and VSQX import default lyric through its format-scoped import options; see `docs/UPSTREAM_RUNTIME_GAPS.md`.
-  - [x] Both policy groups are wired only when `runtime-api@2` is available and pass published v0.8.0 local smoke/browser regressions; remote CI remains.
+  - [x] Both policy groups are wired only when `runtime-api@2` is available and pass published v0.8.0 local smoke/browser regressions plus merged-branch GitHub Actions verification.
 - [ ] Move the remaining bounded format-specific controls, samples, and advanced options.
 - [x] Move generic browser file import and download export for MusicXML, MXL, ABC, MIDI, VSQX, MEI, LilyPond, and MuseScore through the runtime facade.
 - [x] Move a Web-owned VSQX bridge, verify its SHA-256 during build, and exercise MusicXML/VSQX round-trip conversion through the runtime facade.
@@ -99,7 +99,7 @@ Useful upstream references:
 - [x] Extend the checked-in v0.7.0 fixture through configured MIDI, MXL, MuseScore/MSCZ, and VSQX output/round-trip flows.
 - [ ] Add further output/diagnostic parity fixtures for remaining editing and browser-facing format flows.
 - [x] Add GitHub Actions configuration for published-runtime intake, build, tests, offline checks, and generated-HTML synchronization.
-- [ ] Confirm the first remote GitHub Actions run after the next push.
+- [x] Confirm the GitHub Actions run for the merged v0.8.0 runtime intake.
 
 ## Ownership boundary
 

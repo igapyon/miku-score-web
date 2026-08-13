@@ -126,5 +126,5 @@ the v0.8.0 runtime for every supported output format.
 - [x] The v0.8.0 parity smoke compares the published runtime with the
   checked-in v0.7.0 value baseline.
 - [x] Web locks the published version, asset, and SHA-256 before enabling the UI.
-- [ ] Remote CI and the final human browser comparison pass for the exact
-  published-runtime commit.
+- [x] Remote CI passes for the merged v0.8.0 published-runtime intake.
+- [ ] Final human browser comparison for the exact published-runtime commit.
