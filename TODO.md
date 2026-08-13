@@ -93,6 +93,7 @@ Useful upstream references:
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
 - [ ] Move remaining `lht-cmn`-specific controls and Web-owned documentation.
+  - [x] First Web-owned `lht-help-tooltip` slice: restored contextual help for the Web App's main input, conversion, edit, playback, export, and preview controls without adding an external runtime dependency.
 - [x] Add a generated-single-file JSDOM UI regression smoke for conversion, preview, selection/edit, VSQX export, file input, and configured new-score creation.
 - [x] Add Chromium real-browser coverage for file-loaded conversion, preview, selected-note editing, configured VSQX/ZIP downloads, browser file import, and no external requests.
 - [x] Fix the first v0.7.0 checked-in parity baseline for canonical load/state, ABC, configured MIDI, selected-note pitch editing, and invalid MusicXML diagnostics through the published runtime.
