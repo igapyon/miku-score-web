@@ -20,6 +20,10 @@ try {
 
   await page.goto(fileUrl, { waitUntil: "load" });
   await page.waitForFunction(() => Boolean(globalThis.__mikuScoreWebRuntime));
+  const firstHelpTooltip = page.locator("lht-help-tooltip").first();
+  await firstHelpTooltip.locator("button").click();
+  assert.equal(await firstHelpTooltip.getAttribute("open"), "");
+  assert.equal(await firstHelpTooltip.locator("[role='tooltip']").isVisible(), true);
   const v2Available = await page.evaluate(() => globalThis.__mikuScoreWebRuntime.v2Available === true);
   if (!v2Available) {
     assert.equal(await page.locator("#runtimeV2ImportPolicy").isHidden(), true);

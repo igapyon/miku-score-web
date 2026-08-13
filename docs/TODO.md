@@ -38,6 +38,7 @@
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
 - [ ] Move the remaining format-specific controls, `lht-cmn`, and documentation.
+  - [x] Add the first Web-owned `lht-help-tooltip` slice for contextual guidance across the current Web controls.
 - [x] Move generic browser file import and download export for every runtime-supported text and binary format.
 - [x] Move a Web-owned VSQX bridge and inject it through the runtime capability contract before first runtime load.
 - [x] Add generated-single-file JSDOM UI regression coverage for core Web interactions.

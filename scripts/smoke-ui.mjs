@@ -22,6 +22,8 @@ const installedGlobals = {
   Element: dom.window.Element,
   Document: dom.window.Document,
   Node: dom.window.Node,
+  HTMLElement: dom.window.HTMLElement,
+  customElements: dom.window.customElements,
   Event: dom.window.Event,
   MouseEvent: dom.window.MouseEvent,
   Blob: globalThis.Blob,
@@ -89,6 +91,14 @@ try {
   await import(`data:text/javascript;base64,${Buffer.from(moduleMatch[1]).toString("base64")}`);
   const document = dom.window.document;
   const byId = (id) => document.getElementById(id);
+
+  assert.equal(globalThis.customElements.get("lht-help-tooltip")?.name, "LhtHelpTooltip");
+  const helpTooltip = document.querySelector("lht-help-tooltip");
+  assert.ok(helpTooltip?.shadowRoot, "help tooltip must be upgraded in the generated Web App");
+  const helpButton = helpTooltip.shadowRoot.querySelector("button");
+  assert.equal(helpButton.getAttribute("aria-label"), "About miku-score Web");
+  helpButton.click();
+  assert.equal(helpTooltip.hasAttribute("open"), true);
 
   assert.equal(globalThis.__mikuScoreWebRuntime.vsqxAvailable, true);
   const v2Available = globalThis.__mikuScoreWebRuntime.v2Available === true;
