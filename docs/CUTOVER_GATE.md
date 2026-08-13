@@ -29,8 +29,9 @@ This baseline is necessary evidence, not cutover approval.
 The published upstream runtime exposes the formerly missing operations as
 `miku-score/runtime-api@2`. The capability-gated Web implementation passes the
 full local smoke suite, the v0.7.0 value-parity baseline, and Chromium v2
-interaction coverage against the checked-in `v0.8.0` lock. The remote CI run
-for this intake remains required.
+interaction coverage against the checked-in `v0.8.0` lock. The merged v0.8.0
+intake also passed remote GitHub Actions verification; the final human browser
+comparison remains required.
 
 ## Published capability baseline
 

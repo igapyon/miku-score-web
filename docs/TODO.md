@@ -20,7 +20,7 @@
 - [x] Move new-score options (parts, clefs, key, meter, piano grand staff) through the runtime facade.
 - [x] Move selected-measure inspection, navigation, and Rest-to-Note through the v0.7.0 runtime contract.
 - [x] Pin the published `v0.8.0` runtime and move the remaining measure editor, creation, and measure-scoped controls through its measure API.
-  - [x] The capability-gated implementation passes published `runtime-api@2` local smoke and Chromium coverage; remote CI remains.
+  - [x] The capability-gated implementation passes published `runtime-api@2` local smoke and Chromium coverage plus merged-branch GitHub Actions verification.
 - [x] Move text source modes for MusicXML, ABC, VSQX, MEI, LilyPond, and MuseScore through the runtime facade.
 - [x] Move all six bundled MusicXML samples into Web-owned single-file composition.
 - [x] Move local draft persistence, validated restore, and explicit discard as Web-owned browser storage.
@@ -34,7 +34,7 @@
 - [x] Represent historical MusicXML/MuseScore compression as explicit MXL/MSCZ output formats, including ZIP export.
 - [x] Pin the published `v0.8.0` runtime and move ZIP root-entry selection and the three MusicXML metadata output filters through its archive and export-policy APIs.
 - [x] Pin the published `v0.8.0` runtime and move source/debug import-metadata settings, MIDI quantize-grid/triplet-aware settings, and VSQX import default lyric through its format-scoped import options.
-  - [x] These v2-only controls pass the published v0.8.0 smoke suite, the v0.7.0 value-parity baseline, and Chromium interaction coverage; remote CI remains.
+  - [x] These v2-only controls pass the published v0.8.0 smoke suite, the v0.7.0 value-parity baseline, Chromium interaction coverage, and merged-branch GitHub Actions verification.
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
 - [ ] Move the remaining format-specific controls, `lht-cmn`, and documentation.
@@ -46,7 +46,7 @@
 - [x] Add Chromium real-browser coverage for the generated offline single-file app and its conversion, preview, edit, download, and browser-file import flows.
 - [ ] Extend output/diagnostic parity fixtures across remaining combined-Web flows.
 - [x] Add CI configuration that fetches the published Release runtime, runs all smoke checks, and verifies generated HTML synchronization.
-- [ ] Confirm the first remote CI run after the next push.
+- [x] Confirm the GitHub Actions run for the merged v0.8.0 runtime intake.
 - [ ] Do not delete Web-owned paths from `miku-score` until all preceding checks pass.
 
 See `docs/UPSTREAM_RUNTIME_GAPS.md` for the required value-only API contracts
