@@ -135,6 +135,24 @@ button:focus-visible {
   margin: 10px 0;
 }
 
+lht-file-select {
+  display: inline-flex;
+  flex: 1 1 250px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lht-file-select__file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mks-muted);
+  font-size: .88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 button {
   min-height: 38px;
   padding: 8px 14px;
@@ -236,6 +254,6 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   main { width: min(100% - 16px, 1120px); margin: 8px auto; padding: 14px; border-radius: 14px; }
   h1 { margin: -2px -2px 12px; padding: 11px 12px; border-radius: 12px; }
   h2 { margin-top: 22px; }
-  .actions > label { flex-basis: 100%; }
+  .actions > label, .actions > lht-file-select { flex-basis: 100%; }
   button { flex: 1 1 auto; }
 }

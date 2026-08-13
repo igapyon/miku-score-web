@@ -141,6 +141,24 @@ button:focus-visible {
   margin: 10px 0;
 }
 
+lht-file-select {
+  display: inline-flex;
+  flex: 1 1 250px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lht-file-select__file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mks-muted);
+  font-size: .88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 button {
   min-height: 38px;
   padding: 8px 14px;
@@ -242,7 +260,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   main { width: min(100% - 16px, 1120px); margin: 8px auto; padding: 14px; border-radius: 14px; }
   h1 { margin: -2px -2px 12px; padding: 11px 12px; border-radius: 12px; }
   h2 { margin-top: 22px; }
-  .actions > label { flex-basis: 100%; }
+  .actions > label, .actions > lht-file-select { flex-basis: 100%; }
   button { flex: 1 1 auto; }
 }
 </style>
@@ -296,7 +314,7 @@ C D E F|</textarea></label>
     <h2>File conversion <lht-help-tooltip label="File conversion help">Import a supported file, choose an output format, and download one file or a ZIP archive. ZIP root-entry selection is available when the pinned runtime provides API v2.</lht-help-tooltip></h2>
     <div class="actions">
       <label>Import format<select id="importFormat"><option value="auto">auto from file name</option><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="zip">ZIP root entry (runtime v2)</option></select></label>
-      <input id="scoreFile" type="file" accept=".musicxml,.xml,.mxl,.abc,.mid,.midi,.vsqx,.mei,.ly,.lilypond,.mscx,.mscz,.zip">
+      <lht-file-select input-id="scoreFile" button-id="selectScoreFile" file-name-id="selectedScoreFileName" button-label="Choose score file" placeholder="No file selected" show-file-name accept=".musicxml,.xml,.mxl,.abc,.mid,.midi,.vsqx,.mei,.ly,.lilypond,.mscx,.mscz,.zip"></lht-file-select>
       <button id="importFile" type="button">Import file</button>
       <label id="zipEntrySelectLabel" hidden>ZIP root entry<select id="zipEntrySelect" disabled><option value="">(Select a ZIP file first)</option></select></label>
       <label>Export format<select id="exportFormat"><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="svg">SVG</option></select></label>
@@ -29495,6 +29513,79 @@ if (!customElements.get("lht-help-tooltip")) {
 
 function escapeHtml(value) {
   return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+/*
+ * Web-owned single-file adaptation of the lht-cmn file-select control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtFileSelect extends HTMLElement {
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+
+    const inputId = (this.getAttribute("input-id") || "scoreFile").trim();
+    const buttonId = (this.getAttribute("button-id") || "selectScoreFile").trim();
+    const fileNameId = (this.getAttribute("file-name-id") || "selectedScoreFileName").trim();
+    const accept = (this.getAttribute("accept") || "").trim();
+    const buttonLabel = (this.getAttribute("button-label") || "Choose file").trim();
+    const placeholder = (this.getAttribute("placeholder") || "No file selected").trim();
+    const showFileName = this.hasAttribute("show-file-name");
+    const autoOpen = (this.getAttribute("auto-open") || "").trim().toLowerCase() !== "false";
+
+    this.replaceChildren();
+
+    const triggerButton = document.createElement("button");
+    triggerButton.id = buttonId;
+    triggerButton.type = "button";
+    triggerButton.className = "lht-file-select__button";
+    triggerButton.textContent = buttonLabel;
+
+    const input = document.createElement("input");
+    input.id = inputId;
+    input.type = "file";
+    input.className = "lht-file-select__input";
+    input.hidden = true;
+    if (accept) input.accept = accept;
+    if (this.hasAttribute("multiple")) input.multiple = true;
+    if (this.hasAttribute("disabled")) {
+      input.disabled = true;
+      triggerButton.disabled = true;
+    }
+    triggerButton.setAttribute("aria-controls", inputId);
+
+    const fileName = document.createElement("span");
+    fileName.id = fileNameId;
+    fileName.className = "lht-file-select__file-name";
+    fileName.textContent = placeholder;
+    fileName.setAttribute("aria-live", "polite");
+    if (!showFileName) fileName.hidden = true;
+
+    triggerButton.addEventListener("click", () => {
+      const beforeOpenEvent = new CustomEvent("lht-file-select:before-open", {
+        detail: { inputId, buttonId, input, triggerButton, autoOpen },
+        bubbles: true,
+        cancelable: true,
+      });
+      if (autoOpen && this.dispatchEvent(beforeOpenEvent)) input.click();
+    });
+    input.addEventListener("change", () => {
+      const files = Array.from(input.files || []);
+      const names = files.map((file) => file.name).filter(Boolean);
+      fileName.textContent = names.length > 0 ? names.join(", ") : placeholder;
+      this.dispatchEvent(new CustomEvent("lht-file-select:change", {
+        detail: { files, names, input, fileName },
+        bubbles: true,
+      }));
+    });
+
+    this.append(triggerButton, fileName, input);
+  }
+}
+
+if (!customElements.get("lht-file-select")) {
+  customElements.define("lht-file-select", LhtFileSelect);
 }
 
 const verovioAdapter = createBrowserVerovioAdapter();

@@ -62,6 +62,7 @@ const webSource = escapeScriptEnd([
   fs.readFileSync(path.join(ROOT, "src/js/browser-draft.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/browser-settings.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/lht-help-tooltip.mjs"), "utf8"),
+  fs.readFileSync(path.join(ROOT, "src/js/lht-file-select.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/ts/main.ts"), "utf8"),
 ].join("\n"));
 const output = source

@@ -25,6 +25,7 @@ const installedGlobals = {
   HTMLElement: dom.window.HTMLElement,
   customElements: dom.window.customElements,
   Event: dom.window.Event,
+  CustomEvent: dom.window.CustomEvent,
   MouseEvent: dom.window.MouseEvent,
   Blob: globalThis.Blob,
   CSS: { escape: (value) => String(value).replace(/[^A-Za-z0-9_-]/g, "\\$") },
@@ -99,6 +100,30 @@ try {
   assert.equal(helpButton.getAttribute("aria-label"), "About miku-score Web");
   helpButton.click();
   assert.equal(helpTooltip.hasAttribute("open"), true);
+
+  assert.equal(globalThis.customElements.get("lht-file-select")?.name, "LhtFileSelect");
+  const fileSelect = document.querySelector("lht-file-select");
+  assert.ok(fileSelect, "file select must be upgraded in the generated Web App");
+  assert.equal(byId("scoreFile")?.type, "file");
+  assert.equal(byId("selectedScoreFileName")?.textContent, "No file selected");
+  let beforeOpen = false;
+  fileSelect.addEventListener("lht-file-select:before-open", (event) => {
+    beforeOpen = true;
+    event.preventDefault();
+  }, { once: true });
+  byId("selectScoreFile").click();
+  assert.equal(beforeOpen, true);
+  let fileSelection = null;
+  fileSelect.addEventListener("lht-file-select:change", (event) => {
+    fileSelection = event.detail;
+  }, { once: true });
+  Object.defineProperty(byId("scoreFile"), "files", {
+    configurable: true,
+    value: [{ name: "chosen.abc" }],
+  });
+  byId("scoreFile").dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  assert.equal(byId("selectedScoreFileName").textContent, "chosen.abc");
+  assert.deepEqual(fileSelection?.names, ["chosen.abc"]);
 
   assert.equal(globalThis.__mikuScoreWebRuntime.vsqxAvailable, true);
   const v2Available = globalThis.__mikuScoreWebRuntime.v2Available === true;

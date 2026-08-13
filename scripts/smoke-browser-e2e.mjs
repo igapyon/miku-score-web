@@ -97,11 +97,15 @@ try {
   const archiveEntries = readZipEntries(Buffer.concat(archiveChunks));
   assert.match(new TextDecoder().decode(archiveEntries.get("miku-score.vsqx")), /<y>み<\/y>/);
 
-  await page.locator("#scoreFile").setInputFiles({
+  const fileChooserPromise = page.waitForEvent("filechooser");
+  await page.locator("#selectScoreFile").click();
+  const fileChooser = await fileChooserPromise;
+  await fileChooser.setFiles({
     name: "browser.abc",
     mimeType: "text/vnd.abc",
     buffer: Buffer.from("X:2\nM:4/4\nL:1/4\nK:G\nG A B c|"),
   });
+  assert.equal(await page.locator("#selectedScoreFileName").textContent(), "browser.abc");
   await page.locator("#importFormat").selectOption("auto");
   await page.locator("#importFile").click();
   await page.waitForFunction(() => document.querySelector("#status")?.textContent?.includes("Imported browser.abc as abc"));
