@@ -1,7 +1,7 @@
 {
   "schema_version": "miku-score.browser-runtime-lock/v1",
-  "release_tag": "v0.7.0",
-  "package_version": "0.7.0",
-  "asset_name": "miku-score-runtime-0.7.0.mjs",
-  "sha256": "2b849a1f2af076f69541ea0d8905f79180b090ea806f6105fe10519e0b830c0f"
+  "release_tag": "v0.8.0",
+  "package_version": "0.8.0",
+  "asset_name": "miku-score-runtime-0.8.0.mjs",
+  "sha256": "c99f4d8c668af4a2aa2ea23a9ed3f90b8981bc716d5a47cb158f141d65301b33"
 }

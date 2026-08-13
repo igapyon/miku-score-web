@@ -8,10 +8,10 @@ path is removed.
 ## Current baseline
 
 The Web App is an offline, generated single-file application pinned to the
-published `miku-score` `v0.7.0` browser runtime. The following evidence is
+published `miku-score` `v0.8.0` browser runtime. The following evidence is
 already automated locally and in `.github/workflows/verify.yml`:
 
-- runtime tag, package version, release asset, and SHA-256 lock verification;
+- runtime tag, release asset, and SHA-256 lock verification, plus Web/Runtime major-minor version alignment;
 - verifier acceptance of the versioned public runtime contract, rather than a
   hard-coded runtime API revision;
 - format conversion, bounded editing, selection, playback-plan, and
@@ -26,29 +26,28 @@ already automated locally and in `.github/workflows/verify.yml`:
 
 This baseline is necessary evidence, not cutover approval.
 
-The local upstream candidate exposes the currently missing operations as
-`miku-score/runtime-api@2`, but it is not a release asset. The Web implementation
-is capability-gated and an isolated v0.8.0 candidate copy has passed the full
-smoke suite, the v0.7.0 value-parity baseline, and Chromium v2 interaction
-coverage. This evidence does not change the repository's `v0.7.0` lock: the
-upstream Release, checked-in lock update, and remote CI run remain required.
+The published upstream runtime exposes the formerly missing operations as
+`miku-score/runtime-api@2`. The capability-gated Web implementation passes the
+full local smoke suite, the v0.7.0 value-parity baseline, and Chromium v2
+interaction coverage against the checked-in `v0.8.0` lock. The remote CI run
+for this intake remains required.
 
-## Blocking capability gaps
+## Published capability baseline
 
-The runtime must publish the value-only contracts described in
-`docs/UPSTREAM_RUNTIME_GAPS.md` before the corresponding historical behavior
-is enabled in the Web App:
+The v0.8.0 runtime publishes the value-only contracts described in
+`docs/UPSTREAM_RUNTIME_GAPS.md`, enabling the corresponding historical behavior
+in the Web App:
 
 | Historical behavior | Required runtime capability | Cutover status |
 | --- | --- | --- |
-| Isolated measure editing, creation, and measure-scoped output | Measure extraction, replacement, and append | Candidate/Web migration verified; publish and pin pending |
-| Generic ZIP root-entry picker | Archive entry listing and extraction | Candidate/Web migration verified; publish and pin pending |
-| Source/debug import metadata, MIDI quantization, and VSQX import lyric policy | Format-scoped import options | Candidate/Web migration verified; publish and pin pending |
-| `mks:meta`, `mks:src`, and `mks:dbg` filtering for every output | Shared MusicXML export metadata policy | Candidate/Web migration verified; publish and pin pending |
+| Isolated measure editing, creation, and measure-scoped output | Measure extraction, replacement, and append | Published in v0.8.0; local verification complete |
+| Generic ZIP root-entry picker | Archive entry listing and extraction | Published in v0.8.0; local verification complete |
+| Source/debug import metadata, MIDI quantization, and VSQX import lyric policy | Format-scoped import options | Published in v0.8.0; local verification complete |
+| `mks:meta`, `mks:src`, and `mks:dbg` filtering for every output | Shared MusicXML export metadata policy | Published in v0.8.0; local verification complete |
 
 The Web App must not emulate an unpublished runtime operation by mutating
-MusicXML or parsing ZIP values locally. The v2 controls remain hidden while the
-checked-in runtime is v0.7.0.
+MusicXML or parsing ZIP values locally. The v2 controls are available when the
+checked-in runtime exposes `miku-score/runtime-api@2`.
 
 ## Release-by-release procedure
 
@@ -57,8 +56,9 @@ For each upstream runtime release that closes one or more gaps:
 1. Add runtime contract tests upstream, including malformed input and
    no-mutation rejection coverage.
 2. Publish the versioned browser runtime asset and its checksums.
-3. Update `miku-score-web`'s runtime lock, package version, and verified asset
-   using `npm run runtime:fetch`.
+3. Update `miku-score-web`'s runtime lock, verified asset, and Web package
+   major/minor version to match the Runtime using `npm run runtime:fetch`.
+   The Web patch version remains independently managed.
 4. Implement only the browser interaction layer and add Web-owned UI and
    Chromium coverage for the new capability.
 5. Extend public-runtime parity fixtures for the migrated behavior.
