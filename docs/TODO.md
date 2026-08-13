@@ -2,8 +2,8 @@
 
 ## Runtime-first bootstrap
 
-- [x] Pin and verify `miku-score-runtime-0.7.0.mjs` through a checked-in lock.
-- [x] Keep the Web App package version aligned with the pinned runtime and reject mismatches.
+- [x] Pin and verify `miku-score-runtime-0.8.0.mjs` through a checked-in lock.
+- [x] Keep the Web App and pinned Runtime major/minor versions aligned, while allowing Web-owned patch versions, and reject mismatches.
 - [x] Build one offline single-file shell with runtime code before Web-owned code.
 - [x] Cover the initial ABC input, new-score, MIDI download, and playback-plan paths.
 - [x] Inject a Web-owned Verovio capability and render an SVG preview through the runtime facade.
@@ -19,8 +19,8 @@
 - [x] Preserve the selected node across a successful edit and select the deterministic inserted/split position after MusicXML reserialization.
 - [x] Move new-score options (parts, clefs, key, meter, piano grand staff) through the runtime facade.
 - [x] Move selected-measure inspection, navigation, and Rest-to-Note through the v0.7.0 runtime contract.
-- [ ] Update to the next published runtime and move the remaining measure editor, creation, and measure-scoped controls through its measure API.
-  - [x] The capability-gated implementation passes local `runtime-api@2` JSDOM and Chromium coverage; publishing and pinning `v0.8.0` remains.
+- [x] Pin the published `v0.8.0` runtime and move the remaining measure editor, creation, and measure-scoped controls through its measure API.
+  - [x] The capability-gated implementation passes published `runtime-api@2` local smoke and Chromium coverage; remote CI remains.
 - [x] Move text source modes for MusicXML, ABC, VSQX, MEI, LilyPond, and MuseScore through the runtime facade.
 - [x] Move all six bundled MusicXML samples into Web-owned single-file composition.
 - [x] Move local draft persistence, validated restore, and explicit discard as Web-owned browser storage.
@@ -32,9 +32,9 @@
 - [x] Move VSQX output policies (default lyric and part-staff split) through the runtime export request.
 - [x] Move the MusicXML `.xml`/`.musicxml` filename policy as Web-owned download naming without altering conversion data.
 - [x] Represent historical MusicXML/MuseScore compression as explicit MXL/MSCZ output formats, including ZIP export.
-- [ ] Update to the next published runtime and move ZIP root-entry selection and the three MusicXML metadata output filters through its archive and export-policy APIs.
-- [ ] Update to the next published runtime and move source/debug import-metadata settings, MIDI quantize-grid/triplet-aware settings, and VSQX import default lyric through its format-scoped import options.
-  - [x] These v2-only controls pass an isolated v0.8.0 candidate smoke suite, the v0.7.0 value-parity baseline, and Chromium interaction coverage; publication, the checked-in lock update, and remote CI remain.
+- [x] Pin the published `v0.8.0` runtime and move ZIP root-entry selection and the three MusicXML metadata output filters through its archive and export-policy APIs.
+- [x] Pin the published `v0.8.0` runtime and move source/debug import-metadata settings, MIDI quantize-grid/triplet-aware settings, and VSQX import default lyric through its format-scoped import options.
+  - [x] These v2-only controls pass the published v0.8.0 smoke suite, the v0.7.0 value-parity baseline, and Chromium interaction coverage; remote CI remains.
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
 - [ ] Move the remaining format-specific controls, `lht-cmn`, and documentation.

@@ -22,6 +22,13 @@ export function validateWebPackageVersion(packageJson, lock) {
   if (typeof packageJson.version !== "string" || !/^\d+\.\d+\.\d+$/.test(packageJson.version)) {
     throw new Error(`miku-score-web package version must be a stable Semantic Version: ${packageJson.version ?? "missing"}`);
   }
+  const [webMajor, webMinor] = packageJson.version.split(".");
+  const runtimeVersionMatch = /^(\d+)\.(\d+)\./.exec(lock.release_tag.slice(1));
+  if (!runtimeVersionMatch || webMajor !== runtimeVersionMatch[1] || webMinor !== runtimeVersionMatch[2]) {
+    throw new Error(
+      `miku-score-web major.minor ${webMajor}.${webMinor} must match runtime ${lock.release_tag}`,
+    );
+  }
 }
 
 export function validateRuntimeLock(lock) {
