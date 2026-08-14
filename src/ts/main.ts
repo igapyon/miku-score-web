@@ -23,6 +23,8 @@ const sourceInput = document.getElementById("sourceInput");
 const builtInSample = document.getElementById("builtInSample");
 const musicXmlOutput = document.getElementById("musicXmlOutput");
 const status = document.getElementById("status");
+const errorAlert = document.getElementById("errorAlert");
+const fileLoadOverlay = document.getElementById("fileLoadOverlay");
 const localDraftStatus = document.getElementById("localDraftStatus");
 const clearLocalDraft = document.getElementById("clearLocalDraft");
 const resetBrowserSettings = document.getElementById("resetBrowserSettings");
@@ -67,6 +69,8 @@ const stopPlayback = document.getElementById("stopPlayback");
 const playbackStatus = document.getElementById("playbackStatus");
 const importFormat = document.getElementById("importFormat");
 const scoreFile = document.getElementById("scoreFile");
+const selectScoreFile = document.getElementById("selectScoreFile");
+const importFile = document.getElementById("importFile");
 const zipEntrySelectLabel = document.getElementById("zipEntrySelectLabel");
 const zipEntrySelect = document.getElementById("zipEntrySelect");
 const exportFormat = document.getElementById("exportFormat");
@@ -102,13 +106,69 @@ let measureEditorInitialXml = "";
 const browserSynth = createBrowserSynth({ ticksPerQuarter: 480 });
 let isPlaying = false;
 
-status.textContent = `Loaded miku-score runtime ${version}; SVG preview is ${verovioAdapter.available ? "available" : "unavailable"}; VSQX conversion is ${vsqxAdapter.available ? "available" : "unavailable"}; v2 tools are ${runtimeV2Available ? "available" : "unavailable"}.`;
+const showStatus = (message) => {
+  status.textContent = message;
+  errorAlert.clear();
+};
+
+const showError = (message) => {
+  errorAlert.show(message);
+};
 
 const showFailure = (result) => {
-  status.textContent = result.diagnostics
+  showError(result.diagnostics
     .map((item) => `${item.code}: ${item.message}`)
-    .join(" ");
+    .join(" "));
 };
+
+const isLhtLoadingOverlayElement = (element) => {
+  return element?.tagName?.toLowerCase() === "lht-loading-overlay"
+    && typeof element.setActive === "function";
+};
+
+let isFileLoadInProgress = false;
+let fileLoadControlStates = new Map();
+
+const setFileLoadInProgress = (inProgress, extraControls = []) => {
+  isFileLoadInProgress = Boolean(inProgress);
+  if (isFileLoadInProgress) {
+    const controls = [selectScoreFile, importFile, ...extraControls]
+      .filter((control) => control && "disabled" in control);
+    fileLoadControlStates = new Map(controls.map((control) => [control, control.disabled]));
+    for (const control of controls) control.disabled = true;
+  } else {
+    for (const [control, wasDisabled] of fileLoadControlStates) control.disabled = wasDisabled;
+    fileLoadControlStates = new Map();
+  }
+
+  if (isLhtLoadingOverlayElement(fileLoadOverlay)) {
+    fileLoadOverlay.setActive(isFileLoadInProgress);
+    return;
+  }
+  fileLoadOverlay?.toggleAttribute("active", isFileLoadInProgress);
+  fileLoadOverlay?.setAttribute("aria-hidden", isFileLoadInProgress ? "false" : "true");
+};
+
+const waitForFileLoadOverlayPaint = async () => {
+  if (isLhtLoadingOverlayElement(fileLoadOverlay) && typeof fileLoadOverlay.waitForNextPaint === "function") {
+    await fileLoadOverlay.waitForNextPaint();
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
+const runWithFileLoadOverlay = async (operation, { disableZipEntry = false } = {}) => {
+  if (isFileLoadInProgress) return;
+  setFileLoadInProgress(true, disableZipEntry ? [zipEntrySelect] : []);
+  try {
+    await waitForFileLoadOverlayPaint();
+    return await operation();
+  } finally {
+    setFileLoadInProgress(false);
+  }
+};
+
+showStatus(`Loaded miku-score runtime ${version}; SVG preview is ${verovioAdapter.available ? "available" : "unavailable"}; VSQX conversion is ${vsqxAdapter.available ? "available" : "unavailable"}; v2 tools are ${runtimeV2Available ? "available" : "unavailable"}.`);
 
 const renderLocalDraftState = () => {
   const draft = readBrowserDraft();
@@ -511,20 +571,20 @@ const restoreLocalDraft = () => {
     return;
   }
   setCurrentMusicXml(loaded.value, { persistLocalDraft: false });
-  status.textContent = "Restored local draft.";
+  showStatus("Restored local draft.");
   invalidatePreview("Local draft restored. Render SVG preview to select a note.");
 };
 
 clearLocalDraft?.addEventListener("click", () => {
   clearBrowserDraft();
   renderLocalDraftState();
-  status.textContent = "Cleared local draft.";
+  showStatus("Cleared local draft.");
 });
 
 resetBrowserSettings?.addEventListener("click", () => {
   applyBrowserSettings(DEFAULT_BROWSER_SETTINGS);
   persistBrowserSettings();
-  status.textContent = "Reset browser settings to defaults.";
+  showStatus("Reset browser settings to defaults.");
 });
 
 restoreLocalDraft();
@@ -534,21 +594,21 @@ document.getElementById("convertAbc")?.addEventListener("click", async () => {
   const loaded = loadImportedMusicXml(converted);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Converted ABC with ${loaded.warningCount} warning(s).`;
+  showStatus(`Converted ABC with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
 document.getElementById("importSource")?.addEventListener("click", async () => {
   const format = sourceFormat.value;
   if (!sourceInput.value.trim()) {
-    status.textContent = "MKS_INPUT_INVALID: Enter source text before importing.";
+    showError("MKS_INPUT_INVALID: Enter source text before importing.");
     return;
   }
   const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(format, sourceInput.value));
   const loaded = loadImportedMusicXml(imported);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Imported ${format} text with ${loaded.warningCount} warning(s).`;
+  showStatus(`Imported ${format} text with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -556,13 +616,13 @@ document.getElementById("loadBuiltInSample")?.addEventListener("click", () => {
   const sampleId = builtInSample.value;
   const sample = builtInSampleMusicXml(sampleId);
   if (!sample) {
-    status.textContent = `MKS_INPUT_INVALID: Built-in sample ${sampleId} is unavailable.`;
+    showError(`MKS_INPUT_INVALID: Built-in sample ${sampleId} is unavailable.`);
     return;
   }
   const loaded = runtime.score.loadMusicXml(sample);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = `Loaded built-in sample ${sampleId}.`;
+  showStatus(`Loaded built-in sample ${sampleId}.`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -570,7 +630,7 @@ document.getElementById("newScore")?.addEventListener("click", () => {
   const created = runtime.score.createNewMusicXml(newScoreCreationOptions());
   if (!created.ok) return showFailure(created);
   setCurrentMusicXml(created.value);
-  status.textContent = "Created a new MusicXML score.";
+  showStatus("Created a new MusicXML score.");
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -596,7 +656,7 @@ const importZipEntry = async (entryPath) => {
   if (!runtimeV2Available || !pendingZipArchiveBytes || !entryPath) return;
   const format = inputFormatForFileName(entryPath);
   if (!format) {
-    status.textContent = `MKS_INPUT_INVALID: ZIP entry ${entryPath} has no supported score extension.`;
+    showError(`MKS_INPUT_INVALID: ZIP entry ${entryPath} has no supported score extension.`);
     return;
   }
   const extracted = await runtime.archive.extractEntryBytes(pendingZipArchiveBytes, { path: entryPath });
@@ -608,20 +668,20 @@ const importZipEntry = async (entryPath) => {
   const loaded = loadImportedMusicXml(imported);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Imported ${pendingZipArchiveName} / ${entryPath} as ${format} with ${loaded.warningCount} warning(s).`;
+  showStatus(`Imported ${pendingZipArchiveName} / ${entryPath} as ${format} with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 };
 
 const prepareZipEntrySelection = async (file) => {
   if (!runtimeV2Available) {
-    status.textContent = "MKS_INPUT_INVALID: ZIP root-entry selection requires a runtime v2 release.";
+    showError("MKS_INPUT_INVALID: ZIP root-entry selection requires a runtime v2 release.");
     return;
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
   const listed = await runtime.archive.listRootEntryPaths(bytes, { extensions: runtimeInputExtensions });
   if (!listed.ok) return showFailure(listed);
   if (listed.value.length === 0) {
-    status.textContent = "MKS_INPUT_INVALID: No supported root-level score files were found in the ZIP archive.";
+    showError("MKS_INPUT_INVALID: No supported root-level score files were found in the ZIP archive.");
     return;
   }
   pendingZipArchiveBytes = bytes;
@@ -639,48 +699,54 @@ const prepareZipEntrySelection = async (file) => {
     await importZipEntry(listed.value[0]);
     return;
   }
-  status.textContent = `Select one of ${listed.value.length} supported root entries from ${file.name}.`;
+  showStatus(`Select one of ${listed.value.length} supported root entries from ${file.name}.`);
 };
 
-document.getElementById("importFile")?.addEventListener("click", async () => {
+importFile?.addEventListener("click", async () => {
+  if (isFileLoadInProgress) return;
   const file = scoreFile.files?.[0];
   const format = importFormat.value === "auto"
     ? inputFormatForFileName(file?.name)
     : importFormat.value;
   if (!file || !format) {
-    status.textContent = "MKS_INPUT_INVALID: Select a supported score file or choose its import format.";
+    showError("MKS_INPUT_INVALID: Select a supported score file or choose its import format.");
     return;
   }
 
-  try {
-    if (format === "zip") {
-      await prepareZipEntrySelection(file);
-      return;
+  await runWithFileLoadOverlay(async () => {
+    try {
+      if (format === "zip") {
+        await prepareZipEntrySelection(file);
+        return;
+      }
+      resetZipEntrySelection();
+      const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(
+        format,
+        await readBrowserFile(file, format),
+      ));
+      const loaded = loadImportedMusicXml(imported);
+      if (!loaded) return;
+      setCurrentMusicXml(loaded.xml);
+      showStatus(`Imported ${file.name} as ${format} with ${loaded.warningCount} warning(s).`);
+      invalidatePreview("Score changed. Render SVG preview to select a note.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      showError(`MKS_INPUT_INVALID: ${message}`);
     }
-    resetZipEntrySelection();
-    const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(
-      format,
-      await readBrowserFile(file, format),
-    ));
-    const loaded = loadImportedMusicXml(imported);
-    if (!loaded) return;
-    setCurrentMusicXml(loaded.xml);
-    status.textContent = `Imported ${file.name} as ${format} with ${loaded.warningCount} warning(s).`;
-    invalidatePreview("Score changed. Render SVG preview to select a note.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_INPUT_INVALID: ${message}`;
-  }
+  });
 });
 
 zipEntrySelect?.addEventListener("change", () => {
-  void importZipEntry(zipEntrySelect.value);
+  void runWithFileLoadOverlay(
+    () => importZipEntry(zipEntrySelect.value),
+    { disableZipEntry: true },
+  );
 });
 
 document.getElementById("exportFile")?.addEventListener("click", async () => {
   const format = exportFormat.value;
   if (!musicXmlOutput.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: No MusicXML is available to export.";
+    showError("MKS_MUSICXML_INVALID: No MusicXML is available to export.");
     return;
   }
   if (format === "svg" && verovioAdapter.capability) {
@@ -688,7 +754,7 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
       await verovioAdapter.initialize();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      status.textContent = `MKS_CAPABILITY_VEROVIO_UNAVAILABLE: ${message}`;
+      showError(`MKS_CAPABILITY_VEROVIO_UNAVAILABLE: ${message}`);
       return;
     }
   }
@@ -697,10 +763,10 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format));
-    status.textContent = `Downloaded ${format} file.`;
+    showStatus(`Downloaded ${format} file.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_OUTPUT_FAILED: ${message}`;
+    showError(`MKS_OUTPUT_FAILED: ${message}`);
   }
 });
 
@@ -711,7 +777,7 @@ const exportFormatForArchive = async (format) => {
 
 document.getElementById("exportAll")?.addEventListener("click", async () => {
   if (!musicXmlOutput.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: No MusicXML is available to export.";
+    showError("MKS_MUSICXML_INVALID: No MusicXML is available to export.");
     return;
   }
   try {
@@ -724,10 +790,10 @@ document.getElementById("exportAll")?.addEventListener("click", async () => {
     const archive = await runtime.output.encodeZipBundle(entries, { compressed: true });
     if (!archive.ok) return showFailure(archive);
     downloadBrowserData(archive.value, exportFileDetails("zip", "miku-score-all"));
-    status.textContent = `Downloaded ${entries.length} formats as a ZIP archive.`;
+    showStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_OUTPUT_FAILED: ${message}`;
+    showError(`MKS_OUTPUT_FAILED: ${message}`);
   }
 });
 
@@ -858,7 +924,7 @@ const applySelectedMeasureEditor = () => {
   const loaded = runtime.score.loadMusicXml(replaced.value);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = `Applied isolated measure edit for ${location.partId} / measure ${location.measureNumber}.`;
+  showStatus(`Applied isolated measure edit for ${location.partId} / measure ${location.measureNumber}.`);
   invalidatePreview("Score changed. Render SVG preview to confirm the measure edit.");
 };
 
@@ -869,13 +935,13 @@ const appendScoreMeasure = () => {
   const loaded = runtime.score.loadMusicXml(appended.value);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = "Appended one full-measure rest to every score part.";
+  showStatus("Appended one full-measure rest to every score part.");
   invalidatePreview("Score changed. Render SVG preview to select a measure.");
 };
 
 const currentMeasureEditorXml = () => {
   if (!measureEditorLocation || !measureEditorXml.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: Load an isolated measure before using a measure action.";
+    showError("MKS_MUSICXML_INVALID: Load an isolated measure before using a measure action.");
     return null;
   }
   return measureEditorXml.value;
@@ -895,9 +961,9 @@ const downloadCurrentMeasure = async (format) => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format, measureExportBaseName()));
-    status.textContent = `Downloaded isolated measure ${format}.`;
+    showStatus(`Downloaded isolated measure ${format}.`);
   } catch (error) {
-    status.textContent = `MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`;
+    showError(`MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
@@ -938,14 +1004,14 @@ const applySelectedCommand = (command, successMessage) => {
   const applied = runtime.state.applyCommand(musicXmlOutput.value, command);
   if (!applied.ok) return showFailure(applied);
   if (!applied.value.ok) {
-    status.textContent = applied.value.diagnostics
+    showError(applied.value.diagnostics
       .map((item) => `${item.code}: ${item.message}`)
-      .join(" ");
+      .join(" "));
     return;
   }
 
   setCurrentMusicXml(applied.value.xml);
-  status.textContent = successMessage;
+  showStatus(successMessage);
   const nextSelectedNodeId = chooseSelectedNodeAfterSerializedCommand(
     selectedNodeId,
     command.type,
@@ -958,7 +1024,7 @@ const runSelectedEdit = (operation, input, successMessage) => {
   const noteInfo = selectedNodeId ? noteInfoByNodeId.get(selectedNodeId) : null;
   const command = createSelectedNoteCommand(operation, selectedNodeId, noteInfo, input);
   if (!command.ok) {
-    status.textContent = `MVP_INVALID_COMMAND_PAYLOAD: ${command.message}`;
+    showError(`MVP_INVALID_COMMAND_PAYLOAD: ${command.message}`);
     return;
   }
   applySelectedCommand(command.value, successMessage);
@@ -1002,7 +1068,7 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   const bytes = exported.value;
   if (!(bytes instanceof Uint8Array)) {
-    status.textContent = "MIDI export returned an unexpected non-binary value.";
+    showError("MIDI export returned an unexpected non-binary value.");
     return;
   }
   const url = URL.createObjectURL(new Blob([bytes], { type: "audio/midi" }));
@@ -1011,13 +1077,13 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   anchor.download = "miku-score.mid";
   anchor.click();
   URL.revokeObjectURL(url);
-  status.textContent = "Downloaded MIDI.";
+  showStatus("Downloaded MIDI.");
 });
 
 document.getElementById("buildPlaybackPlan")?.addEventListener("click", () => {
   const plan = runtime.playback.buildPlan(musicXmlOutput.value, playbackPlanOptions());
   if (!plan.ok) return showFailure(plan);
-  status.textContent = `Playback plan has ${plan.value.eventCount} event(s).`;
+  showStatus(`Playback plan has ${plan.value.eventCount} event(s).`);
 });
 
 playScore?.addEventListener("click", () => {

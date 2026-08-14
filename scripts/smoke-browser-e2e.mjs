@@ -25,6 +25,16 @@ try {
   assert.equal(await firstHelpTooltip.getAttribute("open"), "");
   assert.equal(await firstHelpTooltip.locator("[role='tooltip']").isVisible(), true);
   const v2Available = await page.evaluate(() => globalThis.__mikuScoreWebRuntime.v2Available === true);
+  const fileLoadOverlay = page.locator("#fileLoadOverlay");
+  assert.equal(await fileLoadOverlay.getAttribute("role"), "status");
+  assert.equal(await fileLoadOverlay.getAttribute("aria-live"), "polite");
+  assert.equal(await fileLoadOverlay.getAttribute("aria-hidden"), "true");
+  await page.evaluate(() => document.querySelector("#fileLoadOverlay")?.setActive(true));
+  assert.equal(await fileLoadOverlay.isVisible(), true);
+  assert.equal(await page.locator("#fileConversionControls").getAttribute("aria-busy"), "true");
+  await page.evaluate(() => document.querySelector("#fileLoadOverlay")?.setActive(false));
+  assert.equal(await fileLoadOverlay.isHidden(), true);
+  assert.equal(await page.locator("#fileConversionControls").getAttribute("aria-busy"), "false");
   if (!v2Available) {
     assert.equal(await page.locator("#runtimeV2ImportPolicy").isHidden(), true);
     assert.equal(await page.locator("#runtimeV2ExportPolicy").isHidden(), true);
@@ -35,6 +45,18 @@ try {
   await page.locator("#convertAbc").click();
   await page.waitForFunction(() => document.querySelector("#status")?.textContent?.includes("Converted ABC"));
   await page.waitForFunction(() => document.querySelector("#musicXmlOutput")?.value.includes("<score-partwise"));
+
+  await page.locator("#sourceFormat").selectOption("abc");
+  await page.locator("#sourceInput").fill("");
+  await page.locator("#importSource").click();
+  await page.waitForFunction(() => document.querySelector("#errorAlert")?.hasAttribute("active") === true);
+  assert.match(await page.locator("#errorAlert").textContent(), /MKS_INPUT_INVALID/);
+  assert.equal(await page.locator("#errorAlert").getAttribute("role"), "alert");
+  assert.equal(await page.locator("#errorAlert").getAttribute("aria-hidden"), "false");
+  await page.locator("#sourceInput").fill("X:2\nM:4/4\nL:1/4\nK:G\nG A B c|");
+  await page.locator("#importSource").click();
+  await page.waitForFunction(() => document.querySelector("#status")?.textContent?.includes("Imported abc text"));
+  assert.equal(await page.locator("#errorAlert").isHidden(), true);
 
   await page.locator("#renderScore").click();
   await page.waitForSelector("#scorePreview svg");

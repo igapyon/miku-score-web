@@ -125,6 +125,57 @@ try {
   assert.equal(byId("selectedScoreFileName").textContent, "chosen.abc");
   assert.deepEqual(fileSelection?.names, ["chosen.abc"]);
 
+  assert.equal(globalThis.customElements.get("lht-error-alert")?.name, "LhtErrorAlert");
+  const errorAlert = byId("errorAlert");
+  assert.equal(errorAlert.isVisible(), false);
+  assert.equal(errorAlert.getAttribute("aria-hidden"), "true");
+  assert.equal(errorAlert.getAttribute("role"), "alert");
+  assert.equal(errorAlert.getAttribute("aria-live"), "assertive");
+  const warningAlert = document.createElement("lht-error-alert");
+  warningAlert.setAttribute("variant", "warning");
+  document.body.appendChild(warningAlert);
+  warningAlert.show("warning message");
+  assert.equal(warningAlert.isVisible(), true);
+  assert.equal(warningAlert.getAttribute("role"), "status");
+  assert.equal(warningAlert.getAttribute("aria-live"), "polite");
+  warningAlert.setAttribute("variant", "info");
+  assert.equal(warningAlert.getAttribute("role"), "status");
+  assert.equal(warningAlert.getAttribute("aria-live"), "polite");
+  warningAlert.setAttribute("variant", "unexpected");
+  assert.equal(warningAlert.getAttribute("variant"), "error");
+  warningAlert.clear();
+  assert.equal(warningAlert.isVisible(), false);
+  warningAlert.remove();
+
+  assert.equal(globalThis.customElements.get("lht-loading-overlay")?.name, "LhtLoadingOverlay");
+  const fileLoadOverlay = byId("fileLoadOverlay");
+  assert.equal(fileLoadOverlay.isActive(), false);
+  assert.equal(fileLoadOverlay.getAttribute("aria-hidden"), "true");
+  assert.equal(fileLoadOverlay.getAttribute("role"), "status");
+  assert.equal(fileLoadOverlay.getAttribute("aria-live"), "polite");
+  assert.equal(byId("fileConversionControls").getAttribute("aria-busy"), "false");
+  const loadingBusyTarget = document.createElement("div");
+  loadingBusyTarget.id = "loadingBusyTarget";
+  const loadingDisabledTarget = document.createElement("button");
+  loadingDisabledTarget.id = "loadingDisabledTarget";
+  const testOverlay = document.createElement("lht-loading-overlay");
+  testOverlay.setAttribute("text", "Reading score...");
+  testOverlay.setAttribute("busy-target-id", loadingBusyTarget.id);
+  testOverlay.setAttribute("disable-target-ids", loadingDisabledTarget.id);
+  document.body.append(loadingBusyTarget, loadingDisabledTarget, testOverlay);
+  testOverlay.setActive(true);
+  assert.equal(testOverlay.isActive(), true);
+  assert.equal(testOverlay.getAttribute("aria-hidden"), "false");
+  assert.equal(testOverlay.querySelector(".lht-loading-overlay__text")?.textContent, "Reading score...");
+  assert.equal(loadingBusyTarget.getAttribute("aria-busy"), "true");
+  assert.equal(loadingDisabledTarget.disabled, true);
+  testOverlay.setActive(false);
+  assert.equal(loadingBusyTarget.getAttribute("aria-busy"), "false");
+  assert.equal(loadingDisabledTarget.disabled, false);
+  testOverlay.remove();
+  loadingBusyTarget.remove();
+  loadingDisabledTarget.remove();
+
   assert.equal(globalThis.__mikuScoreWebRuntime.vsqxAvailable, true);
   const v2Available = globalThis.__mikuScoreWebRuntime.v2Available === true;
   assert.equal(byId("runtimeV2ImportPolicy").hidden, !v2Available);
@@ -148,12 +199,17 @@ try {
   byId("sourceInput").value = "<not-score/>";
   byId("importSource").click();
   await settle();
-  assert.match(byId("status").textContent, /MKS_MUSICXML_INVALID/);
+  assert.match(errorAlert.textContent, /MKS_MUSICXML_INVALID/);
+  assert.equal(errorAlert.isVisible(), true);
+  assert.equal(errorAlert.getAttribute("aria-hidden"), "false");
+  assert.match(byId("status").textContent, /Imported abc text/);
   assert.equal(byId("musicXmlOutput").value, validMusicXml);
 
   byId("builtInSample").value = "1";
   byId("loadBuiltInSample").click();
   assert.match(byId("status").textContent, /Loaded built-in sample 1/);
+  assert.equal(errorAlert.isVisible(), false);
+  assert.equal(errorAlert.textContent, "");
   assert.match(byId("musicXmlOutput").value, /String Quartet No\.15/);
   byId("abcInput").value = "X:1\nM:4/4\nL:1/4\nK:C\nC D E|";
   byId("convertAbc").click();
@@ -220,15 +276,34 @@ try {
   ]);
   assert.match(new TextDecoder().decode(archiveEntries.get("miku-score.vsqx")), /<y>み<\/y>/);
 
+  let resolveImportedFileText;
   Object.defineProperty(byId("scoreFile"), "files", {
     configurable: true,
-    value: [{ name: "import.abc", text: async () => "X:2\nM:4/4\nL:1/4\nK:C\nG A B c|" }],
+    value: [{
+      name: "import.abc",
+      text: () => new Promise((resolve) => {
+        resolveImportedFileText = resolve;
+      }),
+    }],
   });
   byId("importFormat").value = "auto";
   byId("importFile").click();
+  assert.equal(fileLoadOverlay.isActive(), true);
+  assert.equal(fileLoadOverlay.getAttribute("aria-hidden"), "false");
+  assert.equal(byId("fileConversionControls").getAttribute("aria-busy"), "true");
+  assert.equal(byId("selectScoreFile").disabled, true);
+  assert.equal(byId("importFile").disabled, true);
+  for (let attempt = 0; attempt < 10 && !resolveImportedFileText; attempt += 1) await settle();
+  assert.equal(typeof resolveImportedFileText, "function");
+  resolveImportedFileText("X:2\nM:4/4\nL:1/4\nK:C\nG A B c|");
   await settle();
   assert.match(byId("status").textContent, /Imported import\.abc as abc/);
   assert.match(byId("musicXmlOutput").value, /<score-partwise\b/);
+  assert.equal(fileLoadOverlay.isActive(), false);
+  assert.equal(fileLoadOverlay.getAttribute("aria-hidden"), "true");
+  assert.equal(byId("fileConversionControls").getAttribute("aria-busy"), "false");
+  assert.equal(byId("selectScoreFile").disabled, false);
+  assert.equal(byId("importFile").disabled, false);
 
   byId("newPartCount").value = "2";
   byId("newPartCount").dispatchEvent(new dom.window.Event("input", { bubbles: true }));

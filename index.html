@@ -81,6 +81,82 @@ p { margin: 8px 0; }
   font-size: .9rem;
 }
 
+lht-error-alert {
+  display: none;
+  width: 100%;
+  margin: 8px 0;
+}
+
+lht-error-alert[active] { display: block; }
+
+.lht-error-alert__body {
+  margin: 0;
+  padding: .65rem .8rem;
+  overflow-wrap: anywhere;
+  border: 1px solid #f3c7c9;
+  border-radius: 12px;
+  background: #fff3f3;
+  color: #9a1a1f;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+lht-error-alert[variant="warning"] .lht-error-alert__body {
+  border-color: #f0d59b;
+  background: #fff8e6;
+  color: #8a5a00;
+}
+
+lht-error-alert[variant="info"] .lht-error-alert__body {
+  border-color: #bdd7f5;
+  background: #eef6ff;
+  color: #175ea8;
+}
+
+lht-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(28 27 31 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+lht-loading-overlay[active] { display: flex; }
+
+lht-loading-overlay[aria-hidden="true"] { pointer-events: none; }
+
+.lht-loading-overlay__dialog {
+  display: grid;
+  min-width: 13rem;
+  gap: .65rem;
+  justify-items: center;
+  padding: 1rem 1.2rem;
+  border: 1px solid #ded4ef;
+  border-radius: 16px;
+  background: var(--mks-surface);
+  box-shadow: 0 18px 36px rgb(24 18 36 / 24%);
+}
+
+.lht-loading-overlay__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #d8caee;
+  border-top-color: var(--mks-primary);
+  border-radius: 50%;
+  animation: lht-loading-overlay-spin .95s linear infinite;
+}
+
+.lht-loading-overlay__text {
+  margin: 0;
+  color: #383247;
+  font-size: .92rem;
+  font-weight: 600;
+}
+
 label {
   display: inline-flex;
   flex: 1 1 180px;
@@ -256,6 +332,14 @@ legend {
 
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
+@keyframes lht-loading-overlay-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lht-loading-overlay__spinner { animation-duration: 2.4s; }
+}
+
 @media (max-width: 680px) {
   main { width: min(100% - 16px, 1120px); margin: 8px auto; padding: 14px; border-radius: 14px; }
   h1 { margin: -2px -2px 12px; padding: 11px 12px; border-radius: 12px; }
@@ -268,7 +352,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 <body>
   <main>
     <h1>miku-score Web <lht-help-tooltip label="About miku-score Web">This offline Web App owns browser interaction and uses the versioned miku-score runtime for score operations and format conversion.</lht-help-tooltip></h1>
-    <p id="status">Loading verified miku-score runtime.</p>
+    <p id="status" role="status" aria-live="polite" aria-atomic="true">Loading verified miku-score runtime.</p>
+    <lht-error-alert id="errorAlert"></lht-error-alert>
     <p id="localDraftStatus">No local draft is saved.</p>
     <div class="actions">
       <button id="clearLocalDraft" type="button" disabled>Clear local draft</button>
@@ -312,7 +397,7 @@ C D E F|</textarea></label>
     </fieldset>
     <label>MusicXML output<textarea id="musicXmlOutput"></textarea></label>
     <h2>File conversion <lht-help-tooltip label="File conversion help">Import a supported file, choose an output format, and download one file or a ZIP archive. ZIP root-entry selection is available when the pinned runtime provides API v2.</lht-help-tooltip></h2>
-    <div class="actions">
+    <div id="fileConversionControls" class="actions">
       <label>Import format<select id="importFormat"><option value="auto">auto from file name</option><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="zip">ZIP root entry (runtime v2)</option></select></label>
       <lht-file-select input-id="scoreFile" button-id="selectScoreFile" file-name-id="selectedScoreFileName" button-label="Choose score file" placeholder="No file selected" show-file-name accept=".musicxml,.xml,.mxl,.abc,.mid,.midi,.vsqx,.mei,.ly,.lilypond,.mscx,.mscz,.zip"></lht-file-select>
       <button id="importFile" type="button">Import file</button>
@@ -409,6 +494,7 @@ C D E F|</textarea></label>
     <p id="previewMeta">Preview has not been rendered.</p>
     <div id="scorePreview" aria-live="polite"></div>
   </main>
+  <lht-loading-overlay id="fileLoadOverlay" text="Importing score file..." busy-target-id="fileConversionControls"></lht-loading-overlay>
   <script>
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('node:fs'), require('node:crypto')) :
@@ -29588,6 +29674,187 @@ if (!customElements.get("lht-file-select")) {
   customElements.define("lht-file-select", LhtFileSelect);
 }
 
+/*
+ * Web-owned single-file adaptation of the lht-cmn error-alert control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtErrorAlert extends HTMLElement {
+  static get observedAttributes() {
+    return ["text", "active", "variant"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+    this.setAttribute("aria-atomic", "true");
+
+    const initialText = (this.getAttribute("text") || this.textContent || "").trim();
+    this.replaceChildren();
+    this.body = document.createElement("p");
+    this.body.className = "lht-error-alert__body";
+    this.body.textContent = initialText;
+    this.appendChild(this.body);
+
+    this.syncVariant();
+    this.setActive(this.hasAttribute("active"));
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (name === "text") {
+      if (this.body) this.body.textContent = (newValue || "").trim();
+      return;
+    }
+    if (name === "variant") {
+      this.syncVariant();
+      return;
+    }
+    if (name === "active") this.syncVisibility(newValue !== null);
+  }
+
+  isVisible() {
+    return this.getAttribute("data-visible") === "true";
+  }
+
+  show(message) {
+    const text = String(message || this.getAttribute("text") || "").trim();
+    if (this.body) this.body.textContent = text;
+    this.setActive(text.length > 0);
+  }
+
+  clear() {
+    if (this.body) this.body.textContent = "";
+    this.hide();
+  }
+
+  hide() {
+    this.setActive(false);
+  }
+
+  setActive(active) {
+    const visible = Boolean(active);
+    this.toggleAttribute("active", visible);
+    this.syncVisibility(visible);
+  }
+
+  normalizeVariant(value) {
+    const variant = String(value || "error").trim().toLowerCase();
+    return ["error", "warning", "info"].includes(variant) ? variant : "error";
+  }
+
+  syncVariant() {
+    const variant = this.normalizeVariant(this.getAttribute("variant"));
+    if (this.getAttribute("variant") !== variant) {
+      this.setAttribute("variant", variant);
+      return;
+    }
+    this.setAttribute("data-variant", variant);
+    if (variant === "error") {
+      this.setAttribute("role", "alert");
+      this.setAttribute("aria-live", "assertive");
+      return;
+    }
+    this.setAttribute("role", "status");
+    this.setAttribute("aria-live", "polite");
+  }
+
+  syncVisibility(visible) {
+    this.setAttribute("data-visible", visible ? "true" : "false");
+    this.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+}
+
+if (!customElements.get("lht-error-alert")) {
+  customElements.define("lht-error-alert", LhtErrorAlert);
+}
+
+/*
+ * Web-owned single-file adaptation of the lht-cmn loading-overlay control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtLoadingOverlay extends HTMLElement {
+  static get observedAttributes() {
+    return ["active", "text"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+
+    this.setAttribute("role", "status");
+    this.setAttribute("aria-live", "polite");
+
+    const dialog = document.createElement("div");
+    dialog.className = "lht-loading-overlay__dialog";
+
+    const spinner = document.createElement("div");
+    spinner.className = "lht-loading-overlay__spinner";
+    spinner.setAttribute("aria-hidden", "true");
+
+    const message = document.createElement("p");
+    message.className = "lht-loading-overlay__text";
+    message.textContent = this.#normalizedText(this.getAttribute("text"));
+
+    dialog.append(spinner, message);
+    this.replaceChildren(dialog);
+    this.#messageNode = message;
+    this.setActive(this.hasAttribute("active"));
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (name === "text" && this.#messageNode) {
+      this.#messageNode.textContent = this.#normalizedText(newValue);
+      return;
+    }
+    if (name === "active") this.setActive(newValue !== null);
+  }
+
+  isActive() {
+    return this.hasAttribute("active");
+  }
+
+  setActive(inProgress) {
+    const next = Boolean(inProgress);
+    this.toggleAttribute("active", next);
+    this.setAttribute("aria-hidden", next ? "false" : "true");
+
+    const busyTargetId = (this.getAttribute("busy-target-id") || "").trim();
+    if (busyTargetId) {
+      document.getElementById(busyTargetId)?.setAttribute("aria-busy", next ? "true" : "false");
+    }
+
+    const disableTargetIds = (this.getAttribute("disable-target-ids") || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    for (const id of disableTargetIds) {
+      const target = document.getElementById(id);
+      if (target && "disabled" in target) target.disabled = next;
+    }
+  }
+
+  waitForNextPaint() {
+    return new Promise((resolve) => {
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(resolve);
+        return;
+      }
+      setTimeout(resolve, 0);
+    });
+  }
+
+  #normalizedText(value) {
+    return (value || "Loading...").trim() || "Loading...";
+  }
+
+  #messageNode;
+}
+
+if (!customElements.get("lht-loading-overlay")) {
+  customElements.define("lht-loading-overlay", LhtLoadingOverlay);
+}
+
 const verovioAdapter = createBrowserVerovioAdapter();
 const vsqxAdapter = createBrowserVsqxAdapter();
 const runtime = loadMikuScoreRuntime({
@@ -29613,6 +29880,8 @@ const sourceInput = document.getElementById("sourceInput");
 const builtInSample = document.getElementById("builtInSample");
 const musicXmlOutput = document.getElementById("musicXmlOutput");
 const status = document.getElementById("status");
+const errorAlert = document.getElementById("errorAlert");
+const fileLoadOverlay = document.getElementById("fileLoadOverlay");
 const localDraftStatus = document.getElementById("localDraftStatus");
 const clearLocalDraft = document.getElementById("clearLocalDraft");
 const resetBrowserSettings = document.getElementById("resetBrowserSettings");
@@ -29657,6 +29926,8 @@ const stopPlayback = document.getElementById("stopPlayback");
 const playbackStatus = document.getElementById("playbackStatus");
 const importFormat = document.getElementById("importFormat");
 const scoreFile = document.getElementById("scoreFile");
+const selectScoreFile = document.getElementById("selectScoreFile");
+const importFile = document.getElementById("importFile");
 const zipEntrySelectLabel = document.getElementById("zipEntrySelectLabel");
 const zipEntrySelect = document.getElementById("zipEntrySelect");
 const exportFormat = document.getElementById("exportFormat");
@@ -29692,13 +29963,69 @@ let measureEditorInitialXml = "";
 const browserSynth = createBrowserSynth({ ticksPerQuarter: 480 });
 let isPlaying = false;
 
-status.textContent = `Loaded miku-score runtime ${version}; SVG preview is ${verovioAdapter.available ? "available" : "unavailable"}; VSQX conversion is ${vsqxAdapter.available ? "available" : "unavailable"}; v2 tools are ${runtimeV2Available ? "available" : "unavailable"}.`;
+const showStatus = (message) => {
+  status.textContent = message;
+  errorAlert.clear();
+};
+
+const showError = (message) => {
+  errorAlert.show(message);
+};
 
 const showFailure = (result) => {
-  status.textContent = result.diagnostics
+  showError(result.diagnostics
     .map((item) => `${item.code}: ${item.message}`)
-    .join(" ");
+    .join(" "));
 };
+
+const isLhtLoadingOverlayElement = (element) => {
+  return element?.tagName?.toLowerCase() === "lht-loading-overlay"
+    && typeof element.setActive === "function";
+};
+
+let isFileLoadInProgress = false;
+let fileLoadControlStates = new Map();
+
+const setFileLoadInProgress = (inProgress, extraControls = []) => {
+  isFileLoadInProgress = Boolean(inProgress);
+  if (isFileLoadInProgress) {
+    const controls = [selectScoreFile, importFile, ...extraControls]
+      .filter((control) => control && "disabled" in control);
+    fileLoadControlStates = new Map(controls.map((control) => [control, control.disabled]));
+    for (const control of controls) control.disabled = true;
+  } else {
+    for (const [control, wasDisabled] of fileLoadControlStates) control.disabled = wasDisabled;
+    fileLoadControlStates = new Map();
+  }
+
+  if (isLhtLoadingOverlayElement(fileLoadOverlay)) {
+    fileLoadOverlay.setActive(isFileLoadInProgress);
+    return;
+  }
+  fileLoadOverlay?.toggleAttribute("active", isFileLoadInProgress);
+  fileLoadOverlay?.setAttribute("aria-hidden", isFileLoadInProgress ? "false" : "true");
+};
+
+const waitForFileLoadOverlayPaint = async () => {
+  if (isLhtLoadingOverlayElement(fileLoadOverlay) && typeof fileLoadOverlay.waitForNextPaint === "function") {
+    await fileLoadOverlay.waitForNextPaint();
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
+const runWithFileLoadOverlay = async (operation, { disableZipEntry = false } = {}) => {
+  if (isFileLoadInProgress) return;
+  setFileLoadInProgress(true, disableZipEntry ? [zipEntrySelect] : []);
+  try {
+    await waitForFileLoadOverlayPaint();
+    return await operation();
+  } finally {
+    setFileLoadInProgress(false);
+  }
+};
+
+showStatus(`Loaded miku-score runtime ${version}; SVG preview is ${verovioAdapter.available ? "available" : "unavailable"}; VSQX conversion is ${vsqxAdapter.available ? "available" : "unavailable"}; v2 tools are ${runtimeV2Available ? "available" : "unavailable"}.`);
 
 const renderLocalDraftState = () => {
   const draft = readBrowserDraft();
@@ -30101,20 +30428,20 @@ const restoreLocalDraft = () => {
     return;
   }
   setCurrentMusicXml(loaded.value, { persistLocalDraft: false });
-  status.textContent = "Restored local draft.";
+  showStatus("Restored local draft.");
   invalidatePreview("Local draft restored. Render SVG preview to select a note.");
 };
 
 clearLocalDraft?.addEventListener("click", () => {
   clearBrowserDraft();
   renderLocalDraftState();
-  status.textContent = "Cleared local draft.";
+  showStatus("Cleared local draft.");
 });
 
 resetBrowserSettings?.addEventListener("click", () => {
   applyBrowserSettings(DEFAULT_BROWSER_SETTINGS);
   persistBrowserSettings();
-  status.textContent = "Reset browser settings to defaults.";
+  showStatus("Reset browser settings to defaults.");
 });
 
 restoreLocalDraft();
@@ -30124,21 +30451,21 @@ document.getElementById("convertAbc")?.addEventListener("click", async () => {
   const loaded = loadImportedMusicXml(converted);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Converted ABC with ${loaded.warningCount} warning(s).`;
+  showStatus(`Converted ABC with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
 document.getElementById("importSource")?.addEventListener("click", async () => {
   const format = sourceFormat.value;
   if (!sourceInput.value.trim()) {
-    status.textContent = "MKS_INPUT_INVALID: Enter source text before importing.";
+    showError("MKS_INPUT_INVALID: Enter source text before importing.");
     return;
   }
   const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(format, sourceInput.value));
   const loaded = loadImportedMusicXml(imported);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Imported ${format} text with ${loaded.warningCount} warning(s).`;
+  showStatus(`Imported ${format} text with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -30146,13 +30473,13 @@ document.getElementById("loadBuiltInSample")?.addEventListener("click", () => {
   const sampleId = builtInSample.value;
   const sample = builtInSampleMusicXml(sampleId);
   if (!sample) {
-    status.textContent = `MKS_INPUT_INVALID: Built-in sample ${sampleId} is unavailable.`;
+    showError(`MKS_INPUT_INVALID: Built-in sample ${sampleId} is unavailable.`);
     return;
   }
   const loaded = runtime.score.loadMusicXml(sample);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = `Loaded built-in sample ${sampleId}.`;
+  showStatus(`Loaded built-in sample ${sampleId}.`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -30160,7 +30487,7 @@ document.getElementById("newScore")?.addEventListener("click", () => {
   const created = runtime.score.createNewMusicXml(newScoreCreationOptions());
   if (!created.ok) return showFailure(created);
   setCurrentMusicXml(created.value);
-  status.textContent = "Created a new MusicXML score.";
+  showStatus("Created a new MusicXML score.");
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 });
 
@@ -30186,7 +30513,7 @@ const importZipEntry = async (entryPath) => {
   if (!runtimeV2Available || !pendingZipArchiveBytes || !entryPath) return;
   const format = inputFormatForFileName(entryPath);
   if (!format) {
-    status.textContent = `MKS_INPUT_INVALID: ZIP entry ${entryPath} has no supported score extension.`;
+    showError(`MKS_INPUT_INVALID: ZIP entry ${entryPath} has no supported score extension.`);
     return;
   }
   const extracted = await runtime.archive.extractEntryBytes(pendingZipArchiveBytes, { path: entryPath });
@@ -30198,20 +30525,20 @@ const importZipEntry = async (entryPath) => {
   const loaded = loadImportedMusicXml(imported);
   if (!loaded) return;
   setCurrentMusicXml(loaded.xml);
-  status.textContent = `Imported ${pendingZipArchiveName} / ${entryPath} as ${format} with ${loaded.warningCount} warning(s).`;
+  showStatus(`Imported ${pendingZipArchiveName} / ${entryPath} as ${format} with ${loaded.warningCount} warning(s).`);
   invalidatePreview("Score changed. Render SVG preview to select a note.");
 };
 
 const prepareZipEntrySelection = async (file) => {
   if (!runtimeV2Available) {
-    status.textContent = "MKS_INPUT_INVALID: ZIP root-entry selection requires a runtime v2 release.";
+    showError("MKS_INPUT_INVALID: ZIP root-entry selection requires a runtime v2 release.");
     return;
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
   const listed = await runtime.archive.listRootEntryPaths(bytes, { extensions: runtimeInputExtensions });
   if (!listed.ok) return showFailure(listed);
   if (listed.value.length === 0) {
-    status.textContent = "MKS_INPUT_INVALID: No supported root-level score files were found in the ZIP archive.";
+    showError("MKS_INPUT_INVALID: No supported root-level score files were found in the ZIP archive.");
     return;
   }
   pendingZipArchiveBytes = bytes;
@@ -30229,48 +30556,54 @@ const prepareZipEntrySelection = async (file) => {
     await importZipEntry(listed.value[0]);
     return;
   }
-  status.textContent = `Select one of ${listed.value.length} supported root entries from ${file.name}.`;
+  showStatus(`Select one of ${listed.value.length} supported root entries from ${file.name}.`);
 };
 
-document.getElementById("importFile")?.addEventListener("click", async () => {
+importFile?.addEventListener("click", async () => {
+  if (isFileLoadInProgress) return;
   const file = scoreFile.files?.[0];
   const format = importFormat.value === "auto"
     ? inputFormatForFileName(file?.name)
     : importFormat.value;
   if (!file || !format) {
-    status.textContent = "MKS_INPUT_INVALID: Select a supported score file or choose its import format.";
+    showError("MKS_INPUT_INVALID: Select a supported score file or choose its import format.");
     return;
   }
 
-  try {
-    if (format === "zip") {
-      await prepareZipEntrySelection(file);
-      return;
+  await runWithFileLoadOverlay(async () => {
+    try {
+      if (format === "zip") {
+        await prepareZipEntrySelection(file);
+        return;
+      }
+      resetZipEntrySelection();
+      const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(
+        format,
+        await readBrowserFile(file, format),
+      ));
+      const loaded = loadImportedMusicXml(imported);
+      if (!loaded) return;
+      setCurrentMusicXml(loaded.xml);
+      showStatus(`Imported ${file.name} as ${format} with ${loaded.warningCount} warning(s).`);
+      invalidatePreview("Score changed. Render SVG preview to select a note.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      showError(`MKS_INPUT_INVALID: ${message}`);
     }
-    resetZipEntrySelection();
-    const imported = await runtime.convert.importToMusicXml(runtimeImportRequest(
-      format,
-      await readBrowserFile(file, format),
-    ));
-    const loaded = loadImportedMusicXml(imported);
-    if (!loaded) return;
-    setCurrentMusicXml(loaded.xml);
-    status.textContent = `Imported ${file.name} as ${format} with ${loaded.warningCount} warning(s).`;
-    invalidatePreview("Score changed. Render SVG preview to select a note.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_INPUT_INVALID: ${message}`;
-  }
+  });
 });
 
 zipEntrySelect?.addEventListener("change", () => {
-  void importZipEntry(zipEntrySelect.value);
+  void runWithFileLoadOverlay(
+    () => importZipEntry(zipEntrySelect.value),
+    { disableZipEntry: true },
+  );
 });
 
 document.getElementById("exportFile")?.addEventListener("click", async () => {
   const format = exportFormat.value;
   if (!musicXmlOutput.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: No MusicXML is available to export.";
+    showError("MKS_MUSICXML_INVALID: No MusicXML is available to export.");
     return;
   }
   if (format === "svg" && verovioAdapter.capability) {
@@ -30278,7 +30611,7 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
       await verovioAdapter.initialize();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      status.textContent = `MKS_CAPABILITY_VEROVIO_UNAVAILABLE: ${message}`;
+      showError(`MKS_CAPABILITY_VEROVIO_UNAVAILABLE: ${message}`);
       return;
     }
   }
@@ -30287,10 +30620,10 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format));
-    status.textContent = `Downloaded ${format} file.`;
+    showStatus(`Downloaded ${format} file.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_OUTPUT_FAILED: ${message}`;
+    showError(`MKS_OUTPUT_FAILED: ${message}`);
   }
 });
 
@@ -30301,7 +30634,7 @@ const exportFormatForArchive = async (format) => {
 
 document.getElementById("exportAll")?.addEventListener("click", async () => {
   if (!musicXmlOutput.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: No MusicXML is available to export.";
+    showError("MKS_MUSICXML_INVALID: No MusicXML is available to export.");
     return;
   }
   try {
@@ -30314,10 +30647,10 @@ document.getElementById("exportAll")?.addEventListener("click", async () => {
     const archive = await runtime.output.encodeZipBundle(entries, { compressed: true });
     if (!archive.ok) return showFailure(archive);
     downloadBrowserData(archive.value, exportFileDetails("zip", "miku-score-all"));
-    status.textContent = `Downloaded ${entries.length} formats as a ZIP archive.`;
+    showStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    status.textContent = `MKS_OUTPUT_FAILED: ${message}`;
+    showError(`MKS_OUTPUT_FAILED: ${message}`);
   }
 });
 
@@ -30448,7 +30781,7 @@ const applySelectedMeasureEditor = () => {
   const loaded = runtime.score.loadMusicXml(replaced.value);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = `Applied isolated measure edit for ${location.partId} / measure ${location.measureNumber}.`;
+  showStatus(`Applied isolated measure edit for ${location.partId} / measure ${location.measureNumber}.`);
   invalidatePreview("Score changed. Render SVG preview to confirm the measure edit.");
 };
 
@@ -30459,13 +30792,13 @@ const appendScoreMeasure = () => {
   const loaded = runtime.score.loadMusicXml(appended.value);
   if (!loaded.ok) return showFailure(loaded);
   setCurrentMusicXml(loaded.value);
-  status.textContent = "Appended one full-measure rest to every score part.";
+  showStatus("Appended one full-measure rest to every score part.");
   invalidatePreview("Score changed. Render SVG preview to select a measure.");
 };
 
 const currentMeasureEditorXml = () => {
   if (!measureEditorLocation || !measureEditorXml.value.trim()) {
-    status.textContent = "MKS_MUSICXML_INVALID: Load an isolated measure before using a measure action.";
+    showError("MKS_MUSICXML_INVALID: Load an isolated measure before using a measure action.");
     return null;
   }
   return measureEditorXml.value;
@@ -30485,9 +30818,9 @@ const downloadCurrentMeasure = async (format) => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format, measureExportBaseName()));
-    status.textContent = `Downloaded isolated measure ${format}.`;
+    showStatus(`Downloaded isolated measure ${format}.`);
   } catch (error) {
-    status.textContent = `MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`;
+    showError(`MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
@@ -30528,14 +30861,14 @@ const applySelectedCommand = (command, successMessage) => {
   const applied = runtime.state.applyCommand(musicXmlOutput.value, command);
   if (!applied.ok) return showFailure(applied);
   if (!applied.value.ok) {
-    status.textContent = applied.value.diagnostics
+    showError(applied.value.diagnostics
       .map((item) => `${item.code}: ${item.message}`)
-      .join(" ");
+      .join(" "));
     return;
   }
 
   setCurrentMusicXml(applied.value.xml);
-  status.textContent = successMessage;
+  showStatus(successMessage);
   const nextSelectedNodeId = chooseSelectedNodeAfterSerializedCommand(
     selectedNodeId,
     command.type,
@@ -30548,7 +30881,7 @@ const runSelectedEdit = (operation, input, successMessage) => {
   const noteInfo = selectedNodeId ? noteInfoByNodeId.get(selectedNodeId) : null;
   const command = createSelectedNoteCommand(operation, selectedNodeId, noteInfo, input);
   if (!command.ok) {
-    status.textContent = `MVP_INVALID_COMMAND_PAYLOAD: ${command.message}`;
+    showError(`MVP_INVALID_COMMAND_PAYLOAD: ${command.message}`);
     return;
   }
   applySelectedCommand(command.value, successMessage);
@@ -30592,7 +30925,7 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   const bytes = exported.value;
   if (!(bytes instanceof Uint8Array)) {
-    status.textContent = "MIDI export returned an unexpected non-binary value.";
+    showError("MIDI export returned an unexpected non-binary value.");
     return;
   }
   const url = URL.createObjectURL(new Blob([bytes], { type: "audio/midi" }));
@@ -30601,13 +30934,13 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   anchor.download = "miku-score.mid";
   anchor.click();
   URL.revokeObjectURL(url);
-  status.textContent = "Downloaded MIDI.";
+  showStatus("Downloaded MIDI.");
 });
 
 document.getElementById("buildPlaybackPlan")?.addEventListener("click", () => {
   const plan = runtime.playback.buildPlan(musicXmlOutput.value, playbackPlanOptions());
   if (!plan.ok) return showFailure(plan);
-  status.textContent = `Playback plan has ${plan.value.eventCount} event(s).`;
+  showStatus(`Playback plan has ${plan.value.eventCount} event(s).`);
 });
 
 playScore?.addEventListener("click", () => {
