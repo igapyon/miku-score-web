@@ -26,7 +26,7 @@ class LhtTextFieldHelp extends HTMLElement {
     field.className = "lht-text-field-help__field";
     if (!isTextarea && this.hasAttribute("type")) field.type = this.getAttribute("type") || "text";
 
-    for (const name of ["placeholder", "autocomplete", "min", "max", "step", "rows", "maxlength"]) {
+    for (const name of ["placeholder", "autocomplete", "min", "max", "step", "rows", "maxlength", "spellcheck"]) {
       const value = this.getAttribute(name);
       if (value !== null) field.setAttribute(name, value);
     }

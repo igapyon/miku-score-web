@@ -137,6 +137,20 @@ try {
     assert.equal(await page.locator(`#${fieldId}`).getAttribute("step"), "1");
     assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
   }
+  const textareaFields = [
+    ["abcInput", "X:1\nT:miku-score Web bootstrap\nM:4/4\nL:1/4\nK:C\nC D E F|", null, "Enter ABC notation to convert into MusicXML."],
+    ["sourceInput", "X:1\nM:4/4\nL:1/4\nK:C\nC D E F|", "false", "Enter text in the selected source format."],
+    ["musicXmlOutput", "", null, "Review the current canonical MusicXML score."],
+    ["measureEditorXml", "", "false", "Edit the isolated measure MusicXML before applying it to the score."],
+  ];
+  for (const [fieldId, value, spellcheck, helpText] of textareaFields) {
+    const host = page.locator(`lht-text-field-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).evaluate((field) => field.tagName), "TEXTAREA");
+    assert.equal(await page.locator(`#${fieldId}`).inputValue(), value);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("spellcheck"), spellcheck);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+  }
   const pianoGrandStaffHelp = page.locator("lht-switch-help[switch-id='newTemplatePianoGrandStaff']");
   assert.equal(await pianoGrandStaffHelp.count(), 1);
   assert.equal(await page.locator("#newTemplatePianoGrandStaff").isChecked(), false);

@@ -37,7 +37,7 @@
   - [x] These v2-only controls pass the published v0.8.0 smoke suite, the v0.7.0 value-parity baseline, Chromium interaction coverage, and merged-branch GitHub Actions verification.
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
-- [ ] Move the remaining format-specific controls, `lht-cmn`, and documentation.
+- [x] Move the remaining format-specific controls, `lht-cmn`, and documentation.
   - [x] Add the first Web-owned `lht-help-tooltip` slice for contextual guidance across the current Web controls.
   - [x] Add a Web-owned `lht-file-select` slice for the browser file chooser and selected-file name.
   - [x] Add a Web-owned `lht-error-alert` slice for accessible runtime, input, and output diagnostics.
@@ -51,15 +51,19 @@
   - [x] Reuse Web-owned controls for Runtime v2 import/output policy settings and the MusicXML filename switch while preserving IDs, defaults, and request values.
   - [x] Reuse Web-owned controls for static playback and MIDI program settings while preserving playback-plan, MIDI-export, and browser-settings values.
   - [x] Reuse Web-owned controls for static new-score and source/file/export settings while preserving conversion, new-score, and download values.
-  - [x] Reuse `lht-select-help` for ZIP entry, note, and measure selectors after verifying direct dynamic option updates remain compatible; dynamic clef-list and textarea controls remain documented exceptions.
+  - [x] Reuse `lht-select-help` for ZIP entry, note, measure, and dynamic clef selectors while preserving native IDs, `data-new-part-clef`, and direct option updates.
+  - [x] Reuse `lht-text-field-help` in textarea mode for ABC, source, score-output, and isolated-measure editing while preserving initial values and spellcheck.
 - [x] Move generic browser file import and download export for every runtime-supported text and binary format.
 - [x] Move a Web-owned VSQX bridge and inject it through the runtime capability contract before first runtime load.
 - [x] Add generated-single-file JSDOM UI regression coverage for core Web interactions.
 - [x] Add the first checked-in v0.7.0 public-runtime parity fixture for canonical load/state, ABC, configured MIDI, selected-note pitch editing, and invalid MusicXML diagnostics.
 - [x] Fix v0.7.0 output/round-trip parity for configured MIDI, MXL, MuseScore/MSCZ, and VSQX.
 - [x] Add Chromium real-browser coverage for the generated offline single-file app and its conversion, preview, edit, download, and browser-file import flows.
-- [ ] Extend output/diagnostic parity fixtures across remaining combined-Web flows.
+- [x] Extend output/diagnostic parity fixtures across remaining combined-Web flows.
   - [x] Fix the v0.7.0 MIDI-like playback-plan schedule and measure timeline baseline.
+  - [x] Fix the v0.7.0 selected-note duration, insertion, split, deletion, and invalid-command baseline.
+  - [x] Fix the v0.7.0 browser file-format conversion round-trip baseline for all supported runtime formats.
+  - [x] Fix the v0.8.0 Runtime v2 measure, archive, metadata-policy, and rejection baseline.
 - [x] Add CI configuration that fetches the published Release runtime, runs all smoke checks, and verifies generated HTML synchronization.
 - [x] Confirm the GitHub Actions run for the merged v0.8.0 runtime intake.
 - [ ] Do not delete Web-owned paths from `miku-score` until all preceding checks pass.

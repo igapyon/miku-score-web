@@ -25,7 +25,8 @@
       "exportProfile": "musescore_parity"
     },
     "length": 558,
-    "sha256": "af8b2d5cd0a70f1c01d5da255f3c1f6a0b177fd92eefd014e77442acc3be978b"
+    "sha256": "af8b2d5cd0a70f1c01d5da255f3c1f6a0b177fd92eefd014e77442acc3be978b",
+    "roundTripMusicXmlSha256": "f903561ea5c5a0ee448ce96b8548bdacfbc968c5da5819c111b3f3a39eceb42e"
   },
   "playback": {
     "options": {
@@ -94,6 +95,11 @@
     }
   },
   "formatExports": {
+    "musicxml": {
+      "length": 935,
+      "sha256": "84193d5c86d444db42063d47d856847074597d547b53710df6027eca027b3d74",
+      "roundTripMusicXmlSha256": "680a91a9ba1e30dd828f44c45db79a457667fad58ab1365b21a57c9a661182ad"
+    },
     "mxl": {
       "archiveEntries": [
         {
@@ -106,11 +112,29 @@
           "length": 935,
           "sha256": "84193d5c86d444db42063d47d856847074597d547b53710df6027eca027b3d74"
         }
-      ]
+      ],
+      "roundTripMusicXmlSha256": "680a91a9ba1e30dd828f44c45db79a457667fad58ab1365b21a57c9a661182ad"
+    },
+    "abc": {
+      "length": 71,
+      "sha256": "5fe933bb0585aa700506f8f38f8052d6d4e9fd67b44b95a2b83a0374ca6bd714",
+      "requiredText": "X:1",
+      "roundTripMusicXmlSha256": "367a1a6c41cce5b228cb55121f138cc67809a75378abe5f88c98744528cf93f2"
+    },
+    "mei": {
+      "length": 1349,
+      "sha256": "3b096b8763167dfca46e3a367829bc72cf606aab5248b40efdbe189054cec77c",
+      "roundTripMusicXmlSha256": "3d11247afaa735e904bf68bf843b373be44cd632898a3634c9295780d9ae4bf8"
+    },
+    "lilypond": {
+      "length": 284,
+      "sha256": "40903fe2217c9420d9f0b6e3b8b618a772f1bf92e7b00409850b4cea6e5d705f",
+      "roundTripMusicXmlSha256": "4ed3f9353f559d615adc1a7792257cbda466715f9535fc300087aaba380f07d0"
     },
     "musescore": {
       "length": 1386,
-      "sha256": "c4e0d2cf554d1f06eb68a247ad2c41a5d8660278a07a239be049092fb3004a3d"
+      "sha256": "c4e0d2cf554d1f06eb68a247ad2c41a5d8660278a07a239be049092fb3004a3d",
+      "roundTripMusicXmlSha256": "5d99851f33cd656d72f6d160bd36c6abc04631b4e65b90fcd6cf64b0ce743b9e"
     },
     "mscz": {
       "archiveEntries": [
@@ -119,7 +143,8 @@
           "length": 1386,
           "sha256": "c4e0d2cf554d1f06eb68a247ad2c41a5d8660278a07a239be049092fb3004a3d"
         }
-      ]
+      ],
+      "roundTripMusicXmlSha256": "5d99851f33cd656d72f6d160bd36c6abc04631b4e65b90fcd6cf64b0ce743b9e"
     },
     "vsqx": {
       "options": {
@@ -130,7 +155,8 @@
       },
       "length": 2525,
       "sha256": "cc6dd5648a9c3b1ff732746d8d051c3a5d53c45d122fb16a10836d7233f0a3bb",
-      "requiredText": "<y>み</y>"
+      "requiredText": "<y>み</y>",
+      "roundTripMusicXmlSha256": "df1b24d611e0ab921fedda424352603446228cac4b6645d587902f96fd224dd2"
     }
   },
   "edit": {
@@ -147,6 +173,74 @@
     "changedNodeIds": ["n1"],
     "affectedMeasureNumbers": ["1"],
     "musicXmlSha256": "a7255651a3ecfc725f8db976e9de43f2609c39edde2221368ec914d6aeca5783"
+  },
+  "editing": {
+    "sourceFixture": "editing.musicxml",
+    "operations": [
+      {
+        "name": "changeDuration",
+        "command": {
+          "type": "change_duration",
+          "targetNodeId": "n2",
+          "voice": "1",
+          "duration": 2
+        },
+        "changedNodeIds": ["n2"],
+        "affectedMeasureNumbers": ["1"],
+        "musicXmlSha256": "43e5d5d037173827bef992b56424051f2d4f68a38af97608ab3eb94947bd89b0"
+      },
+      {
+        "name": "insertNoteAfter",
+        "command": {
+          "type": "insert_note_after",
+          "anchorNodeId": "n1",
+          "voice": "1",
+          "note": {
+            "pitch": {
+              "step": "E",
+              "alter": 0,
+              "octave": 4
+            },
+            "duration": 1
+          }
+        },
+        "changedNodeIds": ["n1", "n3"],
+        "affectedMeasureNumbers": ["1"],
+        "musicXmlSha256": "49cc978f54d15ba89d5c7bc6f3957a929bf0cb5aa0e22fae0b77d3af04d9b1e0"
+      },
+      {
+        "name": "splitNote",
+        "command": {
+          "type": "split_note",
+          "targetNodeId": "n1",
+          "voice": "1"
+        },
+        "changedNodeIds": ["n1", "n3"],
+        "affectedMeasureNumbers": ["1"],
+        "musicXmlSha256": "cd67fa4beb9ceca6e6439762b247d6403b0a2074dee5b23fd9b6e05ce2a2a413"
+      },
+      {
+        "name": "deleteNote",
+        "command": {
+          "type": "delete_note",
+          "targetNodeId": "n1",
+          "voice": "1"
+        },
+        "changedNodeIds": ["n1"],
+        "affectedMeasureNumbers": ["1"],
+        "musicXmlSha256": "dc5840ad951791b6ef978ba25fd1ccde5a1154deb7c043fb6e5947d84761a49e"
+      }
+    ],
+    "invalidCommand": {
+      "command": {
+        "type": "change_duration",
+        "targetNodeId": "n1",
+        "voice": "1",
+        "duration": 0
+      },
+      "code": "MVP_INVALID_COMMAND_PAYLOAD",
+      "message": "change_duration.duration must be a positive integer."
+    }
   },
   "invalidMusicXml": {
     "data": "<not-score/>",

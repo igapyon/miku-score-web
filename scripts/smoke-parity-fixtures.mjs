@@ -71,6 +71,9 @@ const midi = await runtime.convert.exportFromMusicXml({
 assert.equal(midi.ok, true);
 assert.equal(midi.value.length, expected.midi.length);
 assert.equal(sha256(midi.value), expected.midi.sha256);
+const midiRoundTrip = await runtime.convert.importToMusicXml({ format: "midi", data: midi.value });
+assert.equal(midiRoundTrip.ok, true);
+assert.equal(sha256(midiRoundTrip.value), expected.midi.roundTripMusicXmlSha256);
 
 const playback = runtime.playback.buildPlan(loaded.value, expected.playback.options);
 assert.equal(playback.ok, true);
@@ -103,6 +106,7 @@ for (const [format, formatExpected] of Object.entries(expected.formatExports)) {
   const imported = await runtime.convert.importToMusicXml({ format, data: exported.value });
   assert.equal(imported.ok, true, `${format} roundtrip`);
   assert.match(imported.value, /<score-partwise\b/, `${format} roundtrip MusicXML`);
+  assert.equal(sha256(imported.value), formatExpected.roundTripMusicXmlSha256, `${format} roundtrip MusicXML value`);
 }
 
 const edited = runtime.state.applyCommand(loaded.value, expected.edit.command);
@@ -111,6 +115,29 @@ assert.equal(edited.value.ok, true);
 assert.deepEqual(edited.value.changed_node_ids, expected.edit.changedNodeIds);
 assert.deepEqual(edited.value.affected_measure_numbers, expected.edit.affectedMeasureNumbers);
 assert.equal(sha256(edited.value.xml), expected.edit.musicXmlSha256);
+
+const editingXml = fs.readFileSync(path.join(parityRoot, expected.editing.sourceFixture), "utf8");
+for (const operation of expected.editing.operations) {
+  const editingSource = runtime.score.loadMusicXml(editingXml);
+  assert.equal(editingSource.ok, true, `${operation.name} source`);
+  const operationResult = runtime.state.applyCommand(editingSource.value, operation.command);
+  assert.equal(operationResult.ok, true, operation.name);
+  assert.equal(operationResult.value.ok, true, operation.name);
+  assert.deepEqual(operationResult.value.changed_node_ids, operation.changedNodeIds, `${operation.name} changed nodes`);
+  assert.deepEqual(operationResult.value.affected_measure_numbers, operation.affectedMeasureNumbers, `${operation.name} measures`);
+  assert.deepEqual(operationResult.value.warnings, [], `${operation.name} warnings`);
+  assert.equal(sha256(operationResult.value.xml), operation.musicXmlSha256, `${operation.name} MusicXML`);
+}
+
+const invalidCommandSource = runtime.score.loadMusicXml(editingXml);
+assert.equal(invalidCommandSource.ok, true);
+const invalidCommand = runtime.state.applyCommand(invalidCommandSource.value, expected.editing.invalidCommand.command);
+assert.equal(invalidCommand.ok, true);
+assert.equal(invalidCommand.value.ok, false);
+assert.deepEqual(invalidCommand.value.diagnostics, [{
+  code: expected.editing.invalidCommand.code,
+  message: expected.editing.invalidCommand.message,
+}]);
 
 const invalid = runtime.score.loadMusicXml(expected.invalidMusicXml.data);
 assert.equal(invalid.ok, false);
