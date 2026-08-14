@@ -8,7 +8,7 @@ const ROOT = process.cwd();
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(ROOT, "package.json"), "utf8"));
 const lock = readRuntimeLock(ROOT);
 
-assert.equal(packageJson.version, "0.8.1");
+assert.equal(packageJson.version, "0.8.2");
 assert.equal(lock.package_version, "0.8.0");
 assert.doesNotThrow(
   () => validateWebPackageVersion(packageJson, lock),

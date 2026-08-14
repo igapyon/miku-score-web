@@ -6,8 +6,9 @@ same name. Its contents were confirmed identical before copying here.
 `base.expected.json` records the output and diagnostic baseline captured from
 the published `v0.7.0` browser runtime for value operations used by the
 historical combined Web App: canonical load/state summary, MusicXML-to-ABC,
-configured MusicXML-to-MIDI, MXL/MuseScore/MSCZ output, VSQX output and
-round-trip, a selected-note pitch command, and invalid MusicXML rejection.
+configured MusicXML-to-MIDI, MIDI-like playback-plan schedule and measure
+timeline, MXL/MuseScore/MSCZ output, VSQX output and round-trip, a
+selected-note pitch command, and invalid MusicXML rejection.
 
 The Web smoke imports only the pinned runtime. It must not import implementation
 modules from `../miku-score`. A later pinned runtime may be checked against this

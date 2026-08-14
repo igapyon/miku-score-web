@@ -25,6 +25,7 @@ const musicXmlOutput = document.getElementById("musicXmlOutput");
 const status = document.getElementById("status");
 const errorAlert = document.getElementById("errorAlert");
 const fileLoadOverlay = document.getElementById("fileLoadOverlay");
+const toast = document.getElementById("toast");
 const localDraftStatus = document.getElementById("localDraftStatus");
 const clearLocalDraft = document.getElementById("clearLocalDraft");
 const resetBrowserSettings = document.getElementById("resetBrowserSettings");
@@ -113,6 +114,20 @@ const showStatus = (message) => {
 
 const showError = (message) => {
   errorAlert.show(message);
+};
+
+const isLhtToastElement = (element) => {
+  return element?.tagName?.toLowerCase() === "lht-toast"
+    && typeof element.show === "function";
+};
+
+const showToast = (message, durationMs) => {
+  if (isLhtToastElement(toast)) toast.show(message, durationMs);
+};
+
+const showDownloadStatus = (message) => {
+  showStatus(message);
+  showToast(message);
 };
 
 const showFailure = (result) => {
@@ -763,7 +778,7 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format));
-    showStatus(`Downloaded ${format} file.`);
+    showDownloadStatus(`Downloaded ${format} file.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showError(`MKS_OUTPUT_FAILED: ${message}`);
@@ -790,7 +805,7 @@ document.getElementById("exportAll")?.addEventListener("click", async () => {
     const archive = await runtime.output.encodeZipBundle(entries, { compressed: true });
     if (!archive.ok) return showFailure(archive);
     downloadBrowserData(archive.value, exportFileDetails("zip", "miku-score-all"));
-    showStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
+    showDownloadStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showError(`MKS_OUTPUT_FAILED: ${message}`);
@@ -961,7 +976,7 @@ const downloadCurrentMeasure = async (format) => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format, measureExportBaseName()));
-    showStatus(`Downloaded isolated measure ${format}.`);
+    showDownloadStatus(`Downloaded isolated measure ${format}.`);
   } catch (error) {
     showError(`MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -1077,7 +1092,7 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   anchor.download = "miku-score.mid";
   anchor.click();
   URL.revokeObjectURL(url);
-  showStatus("Downloaded MIDI.");
+  showDownloadStatus("Downloaded MIDI.");
 });
 
 document.getElementById("buildPlaybackPlan")?.addEventListener("click", () => {

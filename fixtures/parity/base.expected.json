@@ -27,6 +27,72 @@
     "length": 558,
     "sha256": "af8b2d5cd0a70f1c01d5da255f3c1f6a0b177fd92eefd014e77442acc3be978b"
   },
+  "playback": {
+    "options": {
+      "ticksPerQuarter": 480,
+      "useMidiLikePlayback": true,
+      "graceTimingMode": "before_beat",
+      "metricAccentEnabled": true,
+      "metricAccentProfile": "subtle"
+    },
+    "value": {
+      "ok": true,
+      "mode": "midi",
+      "schedule": {
+        "tempo": 120,
+        "tempoEvents": [
+          {
+            "startTick": 0,
+            "bpm": 120
+          }
+        ],
+        "pedalRanges": [],
+        "events": [
+          {
+            "midiNumber": 60,
+            "start": 0,
+            "ticks": 446,
+            "channel": 1,
+            "trackId": "P1"
+          },
+          {
+            "midiNumber": 62,
+            "start": 480,
+            "ticks": 446,
+            "channel": 1,
+            "trackId": "P1"
+          },
+          {
+            "midiNumber": 64,
+            "start": 960,
+            "ticks": 446,
+            "channel": 1,
+            "trackId": "P1"
+          },
+          {
+            "midiNumber": 65,
+            "start": 1440,
+            "ticks": 446,
+            "channel": 1,
+            "trackId": "P1"
+          }
+        ]
+      },
+      "eventCount": 4,
+      "midiByteLength": null,
+      "measureTimeline": [
+        {
+          "startTick": 0,
+          "endTick": 1920,
+          "location": {
+            "partId": "P1",
+            "measureNumber": "1"
+          }
+        }
+      ],
+      "initialLocation": null
+    }
+  },
   "formatExports": {
     "mxl": {
       "archiveEntries": [

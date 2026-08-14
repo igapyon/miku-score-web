@@ -25,6 +25,147 @@ try {
   assert.equal(await firstHelpTooltip.getAttribute("open"), "");
   assert.equal(await firstHelpTooltip.locator("[role='tooltip']").isVisible(), true);
   const v2Available = await page.evaluate(() => globalThis.__mikuScoreWebRuntime.v2Available === true);
+  const midiExportProfileHelp = page.locator("lht-select-help[field-id='midiExportProfile']");
+  assert.equal(await midiExportProfileHelp.count(), 1);
+  assert.equal(await page.locator("#midiExportProfile").inputValue(), "musescore_parity");
+  assert.equal(
+    await page.locator("#midiExportProfile").getAttribute("title"),
+    "Choose the MIDI export behavior for individual downloads, ZIP downloads, and MIDI-like playback.",
+  );
+  const midiRoundtripMetadataHelp = page.locator("lht-switch-help[switch-id='keepMidiRoundtripMetadata']");
+  assert.equal(await midiRoundtripMetadataHelp.count(), 1);
+  assert.equal(await page.locator("#keepMidiRoundtripMetadata").isChecked(), true);
+  assert.equal(
+    await midiRoundtripMetadataHelp.locator("lht-help-tooltip").textContent(),
+    "Preserve miku-score round-trip metadata in MIDI output.",
+  );
+  const forceMidiProgramPresetHelp = page.locator("lht-switch-help[switch-id='forceMidiProgramPreset']");
+  assert.equal(await forceMidiProgramPresetHelp.count(), 1);
+  assert.equal(await page.locator("#forceMidiProgramPreset").isChecked(), false);
+  assert.equal(
+    await forceMidiProgramPresetHelp.locator("lht-help-tooltip").textContent(),
+    "Force the selected program for every exported MIDI track, even when the score changes programs.",
+  );
+  const vsqxDefaultLyricHelp = page.locator("lht-text-field-help[field-id='vsqxDefaultLyric']");
+  assert.equal(await vsqxDefaultLyricHelp.count(), 1);
+  assert.equal(await page.locator("#vsqxDefaultLyric").inputValue(), "ら");
+  assert.equal(await page.locator("#vsqxDefaultLyric").getAttribute("maxlength"), "32");
+  assert.equal(
+    await page.locator("#vsqxDefaultLyric").getAttribute("title"),
+    "Use this lyric when a VSQX export needs a default vocal syllable.",
+  );
+  const vsqxSplitPartStavesHelp = page.locator("lht-switch-help[switch-id='vsqxSplitPartStaves']");
+  assert.equal(await vsqxSplitPartStavesHelp.count(), 1);
+  assert.equal(await page.locator("#vsqxSplitPartStaves").isChecked(), false);
+  assert.equal(
+    await vsqxSplitPartStavesHelp.locator("lht-help-tooltip").textContent(),
+    "Render staves from each part separately in the generated VSQX file.",
+  );
+  const runtimeV2Switches = [
+    ["exportMusicXmlAsXmlExtension", false, "Download MusicXML with a .xml extension instead of .musicxml."],
+    ["importSourceMetadata", true, "Keep mks:src metadata when importing through Runtime v2."],
+    ["importDebugMetadata", true, "Keep mks:dbg metadata when importing through Runtime v2."],
+    ["midiImportTripletAware", true, "Recognize triplet timing while Runtime v2 quantizes imported MIDI."],
+    ["exportKeepRoundTripMetadata", true, "Keep mks:meta round-trip metadata in Runtime v2 output."],
+    ["exportKeepSourceMetadata", true, "Keep mks:src source metadata in Runtime v2 output."],
+    ["exportKeepDebugMetadata", true, "Keep mks:dbg debug metadata in Runtime v2 output."],
+  ];
+  for (const [switchId, checked, helpText] of runtimeV2Switches) {
+    const host = page.locator(`lht-switch-help[switch-id='${switchId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${switchId}`).isChecked(), checked);
+    assert.equal(await host.locator("lht-help-tooltip").textContent(), helpText);
+  }
+  const midiImportQuantizeHelp = page.locator("lht-select-help[field-id='midiImportQuantizeGrid']");
+  assert.equal(await midiImportQuantizeHelp.count(), 1);
+  assert.equal(await page.locator("#midiImportQuantizeGrid").inputValue(), "1/64");
+  assert.equal(
+    await page.locator("#midiImportQuantizeGrid").getAttribute("title"),
+    "Choose the rhythmic grid used when Runtime v2 imports MIDI.",
+  );
+  const vsqxImportDefaultLyricHelp = page.locator("lht-text-field-help[field-id='vsqxImportDefaultLyric']");
+  assert.equal(await vsqxImportDefaultLyricHelp.count(), 1);
+  assert.equal(await page.locator("#vsqxImportDefaultLyric").inputValue(), "ら");
+  assert.equal(await page.locator("#vsqxImportDefaultLyric").getAttribute("maxlength"), "32");
+  assert.equal(
+    await page.locator("#vsqxImportDefaultLyric").getAttribute("title"),
+    "Use this lyric when imported VSQX data needs a default vocal syllable.",
+  );
+  const playbackAndMidiSelects = [
+    ["playbackWaveform", "triangle", "Choose the browser oscillator waveform used for playback."],
+    ["graceTimingMode", "before_beat", "Choose how grace-note timing is applied to the playback plan."],
+    ["metricAccentProfile", "subtle", "Choose the strength of metric accents in browser playback."],
+    ["midiProgram", "electric_piano_2", "Choose the MIDI program preset used for MIDI export and MIDI-like playback."],
+  ];
+  for (const [fieldId, value, helpText] of playbackAndMidiSelects) {
+    const host = page.locator(`lht-select-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).inputValue(), value);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+  }
+  const playbackSwitches = [
+    ["playbackUseMidiLike", "Use the runtime's MIDI-like playback plan instead of direct score timing."],
+    ["metricAccentEnabled", "Apply metric accents to browser playback."],
+  ];
+  for (const [switchId, helpText] of playbackSwitches) {
+    const host = page.locator(`lht-switch-help[switch-id='${switchId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${switchId}`).isChecked(), true);
+    assert.equal(await host.locator("lht-help-tooltip").textContent(), helpText);
+  }
+  const newScoreSelects = [
+    ["newTimeBeatType", "4", "Choose the note value that receives one beat."],
+    ["newKeyFifths", "0", "Choose the key signature for the new score."],
+  ];
+  for (const [fieldId, value, helpText] of newScoreSelects) {
+    const host = page.locator(`lht-select-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).inputValue(), value);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+  }
+  const newScoreTextFields = [
+    ["newPartCount", "1", "Choose the number of parts in the new score."],
+    ["newTimeBeats", "4", "Choose the number of beats in each new-score measure."],
+  ];
+  for (const [fieldId, value, helpText] of newScoreTextFields) {
+    const host = page.locator(`lht-text-field-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("type"), "number");
+    assert.equal(await page.locator(`#${fieldId}`).inputValue(), value);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("min"), "1");
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("max"), "16");
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("step"), "1");
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+  }
+  const pianoGrandStaffHelp = page.locator("lht-switch-help[switch-id='newTemplatePianoGrandStaff']");
+  assert.equal(await pianoGrandStaffHelp.count(), 1);
+  assert.equal(await page.locator("#newTemplatePianoGrandStaff").isChecked(), false);
+  assert.equal(await pianoGrandStaffHelp.locator("lht-help-tooltip").textContent(), "Create the first part as a piano grand staff.");
+  const sourceFileExportSelects = [
+    ["sourceFormat", "musicxml", "Choose the format of the source text to import."],
+    ["builtInSample", "6", "Choose a bundled MusicXML sample to load."],
+    ["importFormat", "auto", "Choose auto detection or the format of the selected score file."],
+    ["exportFormat", "musicxml", "Choose the format for the next file download."],
+  ];
+  for (const [fieldId, value, helpText] of sourceFileExportSelects) {
+    const host = page.locator(`lht-select-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).inputValue(), value);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+  }
+  const dynamicSelects = [
+    ["zipEntrySelect", "Choose the root score entry from the imported ZIP archive.", "(Select a ZIP file first)"],
+    ["measureSelect", "Choose a rendered measure to inspect or edit.", "(Render a score first)"],
+    ["noteSelect", "Choose a rendered note to inspect or edit.", "(Render a score first)"],
+  ];
+  for (const [fieldId, helpText, placeholder] of dynamicSelects) {
+    const host = page.locator(`lht-select-help[field-id='${fieldId}']`);
+    assert.equal(await host.count(), 1);
+    assert.equal(await page.locator(`#${fieldId}`).isDisabled(), true);
+    assert.equal(await page.locator(`#${fieldId}`).getAttribute("title"), helpText);
+    assert.equal(await page.locator(`#${fieldId} option`).first().textContent(), placeholder);
+  }
+  assert.equal(await page.locator("#zipEntrySelectLabel").isHidden(), true);
   const fileLoadOverlay = page.locator("#fileLoadOverlay");
   assert.equal(await fileLoadOverlay.getAttribute("role"), "status");
   assert.equal(await fileLoadOverlay.getAttribute("aria-live"), "polite");
@@ -35,6 +176,15 @@ try {
   await page.evaluate(() => document.querySelector("#fileLoadOverlay")?.setActive(false));
   assert.equal(await fileLoadOverlay.isHidden(), true);
   assert.equal(await page.locator("#fileConversionControls").getAttribute("aria-busy"), "false");
+  const toast = page.locator("#toast");
+  assert.equal(await toast.getAttribute("role"), "status");
+  assert.equal(await toast.getAttribute("aria-live"), "polite");
+  assert.equal(await toast.getAttribute("aria-hidden"), "true");
+  await page.evaluate(() => document.querySelector("#toast")?.show("Download ready.", 10000));
+  assert.equal(await toast.isVisible(), true);
+  assert.equal(await toast.textContent(), "Download ready.");
+  await page.evaluate(() => document.querySelector("#toast")?.hide());
+  assert.equal(await toast.getAttribute("aria-hidden"), "true");
   if (!v2Available) {
     assert.equal(await page.locator("#runtimeV2ImportPolicy").isHidden(), true);
     assert.equal(await page.locator("#runtimeV2ExportPolicy").isHidden(), true);
@@ -61,6 +211,9 @@ try {
   await page.locator("#renderScore").click();
   await page.waitForSelector("#scorePreview svg");
   await page.waitForFunction(() => document.querySelector("#noteSelect")?.disabled === false);
+  assert.equal(await page.locator("#measureSelect").isDisabled(), false);
+  assert.ok(await page.locator("#noteSelect option").count() > 1);
+  assert.ok(await page.locator("#measureSelect option").count() > 1);
   await page.locator("#noteSelect").selectOption({ index: 1 });
   await page.locator("#pitchStep").selectOption("D");
   await page.locator("#applyPitch").click();
@@ -101,6 +254,9 @@ try {
     page.locator("#exportFile").click(),
   ]);
   assert.equal(vsqxDownload.suggestedFilename(), "miku-score.vsqx");
+  await page.waitForFunction(() => document.querySelector("#toast")?.hasAttribute("active") === true);
+  assert.match(await toast.textContent(), /Downloaded vsqx file/);
+  await page.evaluate(() => document.querySelector("#toast")?.hide());
   const vsqxStream = await vsqxDownload.createReadStream();
   assert.ok(vsqxStream, "VSQX download stream must be available");
   const vsqxChunks = [];
@@ -118,6 +274,9 @@ try {
   for await (const chunk of archiveStream) archiveChunks.push(chunk);
   const archiveEntries = readZipEntries(Buffer.concat(archiveChunks));
   assert.match(new TextDecoder().decode(archiveEntries.get("miku-score.vsqx")), /<y>み<\/y>/);
+  await page.waitForFunction(() => document.querySelector("#toast")?.hasAttribute("active") === true);
+  assert.match(await toast.textContent(), /Downloaded 10 formats as a ZIP archive/);
+  await page.evaluate(() => document.querySelector("#toast")?.hide());
 
   const fileChooserPromise = page.waitForEvent("filechooser");
   await page.locator("#selectScoreFile").click();
@@ -150,6 +309,8 @@ try {
     await page.locator("#importFormat").selectOption("auto");
     await page.locator("#importFile").click();
     await page.waitForFunction(() => document.querySelector("#zipEntrySelect")?.disabled === false);
+    assert.equal(await page.locator("#zipEntrySelectLabel").isVisible(), true);
+    assert.ok(await page.locator("#zipEntrySelect option").count() > 0);
     await page.locator("#zipEntrySelect").selectOption("miku-score.abc");
     await page.waitForFunction(() => document.querySelector("#status")?.textContent?.includes("root-entry.zip / miku-score.abc"));
 

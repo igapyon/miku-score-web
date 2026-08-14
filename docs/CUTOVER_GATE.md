@@ -17,7 +17,8 @@ already automated locally and in `.github/workflows/verify.yml`:
 - format conversion, bounded editing, selection, playback-plan, and
   capability-adapter smoke checks;
 - public-runtime parity fixtures for canonical loading, diagnostics, selected
-  note editing, configured MIDI, MXL, MuseScore/MSCZ, and VSQX;
+  note editing, configured MIDI-like playback and MIDI, MXL, MuseScore/MSCZ,
+  and VSQX;
 - generated-page JSDOM regression, offline/no-external-request validation,
   and Chromium browser flows for conversion, preview, editing, file import,
   downloads, local draft, and browser settings;
