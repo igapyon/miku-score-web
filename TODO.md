@@ -4,9 +4,9 @@
 
 - `miku-score` browser runtime `v0.8.0` is published with its manifest and checksums.
 - This repository pins `miku-score-runtime-0.8.0.mjs` in `runtime/miku-score-runtime.lock.json`.
-- The Web App version is `0.8.0`; its major/minor version follows the pinned `v0.8.0` runtime package, while its patch version is Web-owned.
+- The Web App version is `0.8.3`; its major/minor version follows the pinned `v0.8.0` runtime package, while its patch version is Web-owned.
 - The initial runtime-first Web bootstrap was merged by PR #1 and tagged `v0.7.0`.
-- Current development continues on `devel-tiga0810xeg` from the merged `origin/devel`.
+- Current development continues on `devel-tiga0814wda` from the merged `origin/devel`.
 
 ## Resume here
 
@@ -92,7 +92,7 @@ Useful upstream references:
 - [x] Move a Web-owned VSQX bridge, verify its SHA-256 during build, and exercise MusicXML/VSQX round-trip conversion through the runtime facade.
 - [x] Move responsive Web-owned CSS for the current single-file application.
 - [x] Add reproducible Chromium capture for the current Web-owned screenshot.
-- [ ] Move remaining `lht-cmn`-specific controls and Web-owned documentation.
+- [x] Move remaining `lht-cmn`-specific controls and Web-owned documentation.
   - [x] First Web-owned `lht-help-tooltip` slice: restored contextual help for the Web App's main input, conversion, edit, playback, export, and preview controls without adding an external runtime dependency.
   - [x] Web-owned `lht-file-select` slice: restored a file chooser button, selected-file name, and public selection events while keeping the existing browser import workflow intact.
   - [x] Web-owned `lht-error-alert` slice: separated accessible runtime, input, and output diagnostics from normal status messages.
@@ -106,13 +106,17 @@ Useful upstream references:
   - [x] Reused Web-owned controls for Runtime v2 import/output policy settings and the MusicXML filename switch while preserving IDs, defaults, and request values.
   - [x] Reused Web-owned controls for static playback and MIDI program settings while preserving playback-plan, MIDI-export, and browser-settings values.
   - [x] Reused Web-owned controls for static new-score and source/file/export settings while preserving conversion, new-score, and download values.
-  - [x] Reused `lht-select-help` for ZIP entry, note, and measure selectors after verifying direct dynamic option updates remain compatible; dynamic clef-list and textarea controls remain documented exceptions.
+  - [x] Reused `lht-select-help` for ZIP entry, note, measure, and dynamic clef selectors while preserving native IDs, `data-new-part-clef`, and direct option updates.
+  - [x] Reused `lht-text-field-help` in textarea mode for ABC, source, score-output, and isolated-measure editing while preserving initial values and spellcheck.
 - [x] Add a generated-single-file JSDOM UI regression smoke for conversion, preview, selection/edit, VSQX export, file input, and configured new-score creation.
 - [x] Add Chromium real-browser coverage for file-loaded conversion, preview, selected-note editing, configured VSQX/ZIP downloads, browser file import, and no external requests.
 - [x] Fix the first v0.7.0 checked-in parity baseline for canonical load/state, ABC, configured MIDI, selected-note pitch editing, and invalid MusicXML diagnostics through the published runtime.
 - [x] Extend the checked-in v0.7.0 fixture through configured MIDI, MXL, MuseScore/MSCZ, and VSQX output/round-trip flows.
-- [ ] Add further output/diagnostic parity fixtures for remaining editing and browser-facing format flows.
+- [x] Add further output/diagnostic parity fixtures for remaining editing and browser-facing format flows.
   - [x] Fix the v0.7.0 MIDI-like playback-plan schedule and measure timeline baseline.
+  - [x] Fix the v0.7.0 selected-note duration, insertion, split, deletion, and invalid-command baseline.
+  - [x] Fix the v0.7.0 browser file-format conversion round-trip baseline for all supported runtime formats.
+  - [x] Fix the v0.8.0 Runtime v2 measure, archive, metadata-policy, and rejection baseline.
 - [x] Add GitHub Actions configuration for published-runtime intake, build, tests, offline checks, and generated-HTML synchronization.
 - [x] Confirm the GitHub Actions run for the merged v0.8.0 runtime intake.
 

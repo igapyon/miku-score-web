@@ -1,0 +1,82 @@
+{
+  "baseline": {
+    "runtimeVersion": "0.8.0",
+    "sourceFixture": "base.musicxml",
+    "sourceTag": "miku-score v0.8.0"
+  },
+  "measure": {
+    "location": {
+      "partId": "P1",
+      "measureNumber": "1"
+    },
+    "extractedLength": 725,
+    "extractedSha256": "880a85a5ecdd2e8c3480dad04a0cf6a8bd04597e11ff2abc1d5eb661f4a2a861",
+    "replacement": {
+      "from": "<step>C</step>",
+      "to": "<step>G</step>",
+      "length": 764,
+      "sha256": "43dedd7f837290b774c665310cd7fda982e62e9c5dd12f68e4500552fce7b1b0"
+    },
+    "appendedLength": 866,
+    "appendedSha256": "10f7bc42de7e730f9c5ff1384c7d2235841f7c2f3ec54beb65ff14d76a8bbe0f",
+    "invalidReplacement": {
+      "editorXml": "<not-score/>",
+      "code": "MKS_MUSICXML_INVALID",
+      "message": "MusicXML root must be <score-partwise>."
+    }
+  },
+  "archive": {
+    "inputEntries": [
+      {
+        "path": "bundle.abc",
+        "data": "X:1\nM:4/4\nL:1/4\nK:C\nC D E F|"
+      },
+      {
+        "path": "nested/ignored.abc",
+        "data": "X:1\nK:C\nC|"
+      },
+      {
+        "path": "bundle.musicxml",
+        "sourceFixture": "base.musicxml"
+      },
+      {
+        "path": "notes.txt",
+        "data": "ignore"
+      }
+    ],
+    "extensions": [".abc", ".musicxml"],
+    "rootPaths": ["bundle.abc", "bundle.musicxml"],
+    "entryPath": "bundle.abc",
+    "entryLength": 28,
+    "entrySha256": "00b69fe7eee2a089bb9982677aed8bfb91c1ab22e021540dad267c1ab9f60cd5",
+    "invalidExtraction": {
+      "code": "MKS_INPUT_INVALID",
+      "message": "Archive extraction requires a non-empty path."
+    }
+  },
+  "metadata": {
+    "format": "abc",
+    "data": "X:3\nM:4/4\nL:1/4\nK:C\nC D E F|",
+    "importOptions": {
+      "importMetadata": {
+        "source": true,
+        "debug": true
+      }
+    },
+    "importLength": 2837,
+    "importSha256": "19ef10c772c295c5a4f976d2d80b5816ce93a3c14de8ba8a7ce4ec6b695b7365",
+    "importRequiredText": ["mks:src:", "mks:dbg:"],
+    "exportOptions": {
+      "musicXml": {
+        "metadata": {
+          "roundTrip": false,
+          "source": false,
+          "debug": false
+        }
+      }
+    },
+    "exportLength": 1460,
+    "exportSha256": "2234cc10f6980e99897a5a963f17d0aa3d9e6c85b1e0f1a195103f9ecbd1ab00",
+    "exportForbiddenText": ["mks:meta:", "mks:src:", "mks:dbg:"]
+  }
+}

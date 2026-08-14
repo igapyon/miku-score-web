@@ -6,7 +6,7 @@ single-file composition; score semantics and format conversion stay upstream.
 
 ## Runtime intake
 
-The Web App is currently `0.8.2` and uses the checked-in `v0.8.0` runtime lock.
+The Web App is currently `0.8.3` and uses the checked-in `v0.8.0` runtime lock.
 The Web App's major/minor version (`a.b`) follows the published Runtime's
 major/minor version; its patch version (`c`) may be managed independently. The
 build validates that relationship alongside the published runtime lock. Fetch the

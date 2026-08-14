@@ -375,19 +375,24 @@ const renderNewPartClefControls = () => {
 
   const partCount = boundedIntegerInput(newPartCount, 1, 1, 16);
   for (let index = 0; index < partCount; index += 1) {
-    const label = document.createElement("label");
-    label.textContent = `Part ${index + 1} clef `;
-    const select = document.createElement("select");
-    select.setAttribute("data-new-part-clef", "true");
-    for (const [value, text] of [["treble", "treble"], ["alto", "alto"], ["bass", "bass"]]) {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = text;
-      select.appendChild(option);
-    }
+    const clefHelp = document.createElement("lht-select-help");
+    clefHelp.setAttribute("field-id", `newPartClef${index + 1}`);
+    clefHelp.setAttribute("label", `Part ${index + 1} clef`);
+    clefHelp.setAttribute("help-text", "Choose the clef for this new score part.");
+    clefHelp.setAttribute("data-new-part-clef", "true");
+    const options = document.createElement("script");
+    options.type = "application/json";
+    options.slot = "options";
+    options.textContent = JSON.stringify([
+      { value: "treble", label: "treble", selected: true },
+      { value: "alto", label: "alto" },
+      { value: "bass", label: "bass" },
+    ]);
+    clefHelp.appendChild(options);
+    newPartClefList.appendChild(clefHelp);
+    const select = clefHelp.querySelector("select[data-new-part-clef]");
+    if (!select) continue;
     select.value = previousClefs[index] ?? "treble";
-    label.appendChild(select);
-    newPartClefList.appendChild(label);
   }
 };
 

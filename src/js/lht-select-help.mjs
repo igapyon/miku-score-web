@@ -26,6 +26,11 @@ class LhtSelectHelp extends HTMLElement {
     field.className = "lht-select-help__field";
     field.disabled = this.hasAttribute("disabled");
     field.required = this.hasAttribute("required");
+    for (const attribute of [...this.attributes]) {
+      if (attribute.name.startsWith("data-") && attribute.name !== "data-initialized") {
+        field.setAttribute(attribute.name, attribute.value);
+      }
+    }
     const helpText = (this.getAttribute("help-text") || "").trim();
     if (helpText) field.title = helpText;
 

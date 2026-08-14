@@ -16,12 +16,7 @@
       <button id="clearLocalDraft" type="button" disabled>Clear local draft</button>
       <button id="resetBrowserSettings" type="button">Reset browser settings</button>
     </div>
-    <label>ABC input<textarea id="abcInput">X:1
-T:miku-score Web bootstrap
-M:4/4
-L:1/4
-K:C
-C D E F|</textarea></label>
+    <lht-text-field-help field-id="abcInput" label="ABC input" help-text="Enter ABC notation to convert into MusicXML." type="textarea" value="X:1&#10;T:miku-score Web bootstrap&#10;M:4/4&#10;L:1/4&#10;K:C&#10;C D E F|"></lht-text-field-help>
     <div class="actions">
       <button id="convertAbc" type="button">Convert ABC to MusicXML</button>
       <button id="newScore" type="button">New score</button>
@@ -36,11 +31,7 @@ C D E F|</textarea></label>
       <lht-select-help field-id="builtInSample" label="Built-in sample" help-text="Choose a bundled MusicXML sample to load."><script type="application/json" slot="options">[{"value":"1","label":"Sample 1"},{"value":"2","label":"Sample 2"},{"value":"3","label":"Sample 3"},{"value":"4","label":"Sample 4"},{"value":"6","label":"Sample 6","selected":true},{"value":"7","label":"Sample 7"}]</script></lht-select-help>
       <button id="loadBuiltInSample" type="button">Load sample</button>
     </div>
-    <label>Source text<textarea id="sourceInput" spellcheck="false">X:1
-M:4/4
-L:1/4
-K:C
-C D E F|</textarea></label>
+    <lht-text-field-help field-id="sourceInput" label="Source text" help-text="Enter text in the selected source format." type="textarea" spellcheck="false" value="X:1&#10;M:4/4&#10;L:1/4&#10;K:C&#10;C D E F|"></lht-text-field-help>
     <fieldset id="newScoreOptions">
       <legend>New score options</legend>
       <div class="actions">
@@ -52,7 +43,7 @@ C D E F|</textarea></label>
       </div>
       <div id="newPartClefList" aria-live="polite"></div>
     </fieldset>
-    <label>MusicXML output<textarea id="musicXmlOutput"></textarea></label>
+    <lht-text-field-help field-id="musicXmlOutput" label="MusicXML output" help-text="Review the current canonical MusicXML score." type="textarea"></lht-text-field-help>
     <h2>File conversion <lht-help-tooltip label="File conversion help">Import a supported file, choose an output format, and download one file or a ZIP archive. ZIP root-entry selection is available when the pinned runtime provides API v2.</lht-help-tooltip></h2>
     <div id="fileConversionControls" class="actions">
       <lht-select-help field-id="importFormat" label="Import format" help-text="Choose auto detection or the format of the selected score file."><script type="application/json" slot="options">[{"value":"auto","label":"auto from file name","selected":true},{"value":"musicxml","label":"MusicXML"},{"value":"mxl","label":"MXL"},{"value":"abc","label":"ABC"},{"value":"midi","label":"MIDI"},{"value":"vsqx","label":"VSQX"},{"value":"mei","label":"MEI"},{"value":"lilypond","label":"LilyPond"},{"value":"musescore","label":"MuseScore MSCX"},{"value":"mscz","label":"MuseScore MSCZ"},{"value":"zip","label":"ZIP root entry (runtime v2)"}]</script></lht-select-help>
@@ -113,7 +104,7 @@ C D E F|</textarea></label>
     <fieldset id="measureEditor" hidden disabled>
       <legend>Measure editor (runtime v2)</legend>
       <p id="measureEditorStatus">Select a rendered measure, then load its isolated MusicXML.</p>
-      <label>Isolated measure MusicXML<textarea id="measureEditorXml" spellcheck="false"></textarea></label>
+      <lht-text-field-help field-id="measureEditorXml" label="Isolated measure MusicXML" help-text="Edit the isolated measure MusicXML before applying it to the score." type="textarea" spellcheck="false"></lht-text-field-help>
       <div class="actions">
         <button id="loadMeasureEditor" type="button">Load selected measure</button>
         <button id="applyMeasureEditor" type="button" disabled>Apply measure edit</button>

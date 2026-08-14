@@ -177,6 +177,20 @@ try {
   vsqxDefaultLyricHelp.setValue("み");
   assert.equal(vsqxDefaultLyric.value, "み");
   vsqxDefaultLyricHelp.setValue("ら");
+  const textareaFields = [
+    ["abcInput", "X:1\nT:miku-score Web bootstrap\nM:4/4\nL:1/4\nK:C\nC D E F|", null, "Enter ABC notation to convert into MusicXML."],
+    ["sourceInput", "X:1\nM:4/4\nL:1/4\nK:C\nC D E F|", "false", "Enter text in the selected source format."],
+    ["musicXmlOutput", "", null, "Review the current canonical MusicXML score."],
+    ["measureEditorXml", "", "false", "Edit the isolated measure MusicXML before applying it to the score."],
+  ];
+  for (const [fieldId, value, spellcheck, helpText] of textareaFields) {
+    const host = document.querySelector(`lht-text-field-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-text-field-help`);
+    assert.equal(byId(fieldId).tagName, "TEXTAREA");
+    assert.equal(byId(fieldId).value, value);
+    assert.equal(byId(fieldId).getAttribute("spellcheck"), spellcheck);
+    assert.equal(byId(fieldId).title, helpText);
+  }
   const vsqxSplitPartStavesHelp = document.querySelector("lht-switch-help[switch-id='vsqxSplitPartStaves']");
   const vsqxSplitPartStaves = byId("vsqxSplitPartStaves");
   assert.ok(vsqxSplitPartStavesHelp, "VSQX split-part-staves must be upgraded through lht-switch-help");
@@ -503,6 +517,8 @@ try {
   byId("newPartCount").dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   const newClefs = byId("newPartClefList").querySelectorAll("select[data-new-part-clef]");
   assert.equal(newClefs.length, 2);
+  assert.ok(newClefs[0].closest("lht-select-help"));
+  assert.equal(newClefs[0].title, "Choose the clef for this new score part.");
   newClefs[0].value = "bass";
   newClefs[1].value = "alto";
   byId("newTimeBeats").value = "3";

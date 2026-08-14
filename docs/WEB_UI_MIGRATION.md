@@ -43,15 +43,13 @@ These controls require dedicated compatibility coverage before migration.
   Each component still exposes its native `select` by the historical DOM ID,
   so existing code can replace options, set `disabled`, restore `value`, and
   dispatch the normal `change` event without an adapter.
-- `newPartClefList` remains hand-built. It creates a variable number of
-  controls with `data-new-part-clef`, and the current select component does
-  not yet accept the required per-field data attributes declaratively.
-- The four textareas remain hand-built. Migrating them requires a textarea
-  component contract covering initial text, spellcheck, and editing/load
-  behavior; it is not part of this select-focused slice.
+- `newPartClefList` builds `lht-select-help` controls. The component copies
+  `data-new-part-clef` to each native select, preserving the existing query,
+  value, and new-score request path.
+- The four textareas use `lht-text-field-help` in textarea mode. It preserves
+  each native ID, initial value, spellcheck attribute, and input/load path.
 
 ## Current exclusions
 
-Do not migrate a dynamic control merely because a component has a similarly
-named API. First add a focused smoke assertion for its option replacement,
-disabled state, and event path, then migrate it as one bounded slice.
+Every dynamic migration keeps a focused smoke assertion for option replacement,
+disabled state, and event path.
