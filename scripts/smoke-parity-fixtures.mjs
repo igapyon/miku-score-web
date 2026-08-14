@@ -72,6 +72,11 @@ assert.equal(midi.ok, true);
 assert.equal(midi.value.length, expected.midi.length);
 assert.equal(sha256(midi.value), expected.midi.sha256);
 
+const playback = runtime.playback.buildPlan(loaded.value, expected.playback.options);
+assert.equal(playback.ok, true);
+assert.deepEqual(playback.value, expected.playback.value);
+assert.deepEqual(playback.warnings ?? [], []);
+
 for (const [format, formatExpected] of Object.entries(expected.formatExports)) {
   const exported = await runtime.convert.exportFromMusicXml({
     format,

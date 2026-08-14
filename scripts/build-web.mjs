@@ -63,8 +63,12 @@ const webSource = escapeScriptEnd([
   fs.readFileSync(path.join(ROOT, "src/js/browser-settings.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/lht-help-tooltip.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/lht-file-select.mjs"), "utf8"),
+  fs.readFileSync(path.join(ROOT, "src/js/lht-text-field-help.mjs"), "utf8"),
+  fs.readFileSync(path.join(ROOT, "src/js/lht-select-help.mjs"), "utf8"),
+  fs.readFileSync(path.join(ROOT, "src/js/lht-switch-help.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/lht-error-alert.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/js/lht-loading-overlay.mjs"), "utf8"),
+  fs.readFileSync(path.join(ROOT, "src/js/lht-toast.mjs"), "utf8"),
   fs.readFileSync(path.join(ROOT, "src/ts/main.ts"), "utf8"),
 ].join("\n"));
 const output = source

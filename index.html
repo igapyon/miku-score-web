@@ -157,6 +157,37 @@ lht-loading-overlay[aria-hidden="true"] { pointer-events: none; }
   font-weight: 600;
 }
 
+lht-toast {
+  position: fixed;
+  z-index: 340;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px) + .5rem);
+  left: 50%;
+  max-width: calc(100vw - 2rem);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 18px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+lht-toast[active] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.lht-toast__body {
+  min-width: 8.5rem;
+  max-width: min(30rem, calc(100vw - 2rem));
+  padding: .62rem .9rem;
+  overflow-wrap: anywhere;
+  border-radius: 12px;
+  background: rgb(43 34 63 / 94%);
+  box-shadow: 0 10px 24px rgb(18 14 28 / 35%);
+  color: #fff;
+  font-size: .88rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 label {
   display: inline-flex;
   flex: 1 1 180px;
@@ -223,6 +254,47 @@ lht-file-select {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+lht-select-help {
+  display: block;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+lht-select-help[hidden] { display: none; }
+
+lht-select-help .lht-select-help__label {
+  width: 100%;
+}
+
+lht-select-help .lht-select-help__field {
+  width: 100%;
+}
+
+lht-text-field-help {
+  display: block;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+lht-text-field-help .lht-text-field-help__label {
+  width: 100%;
+}
+
+lht-switch-help {
+  display: block;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+lht-switch-help .lht-switch-help__label {
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+lht-switch-help .lht-switch-help__label-text {
   min-width: 0;
 }
 
@@ -374,9 +446,9 @@ C D E F|</textarea></label>
     </div>
     <h2>Text source input <lht-help-tooltip label="Text source input help">Select the source format, then import MusicXML, ABC, VSQX, MEI, LilyPond, or MuseScore text. Built-in samples are Web-owned convenience inputs.</lht-help-tooltip></h2>
     <div class="actions">
-      <label>Source format<select id="sourceFormat"><option value="musicxml">MusicXML</option><option value="abc">ABC</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option></select></label>
+      <lht-select-help field-id="sourceFormat" label="Source format" help-text="Choose the format of the source text to import."><script type="application/json" slot="options">[{"value":"musicxml","label":"MusicXML","selected":true},{"value":"abc","label":"ABC"},{"value":"vsqx","label":"VSQX"},{"value":"mei","label":"MEI"},{"value":"lilypond","label":"LilyPond"},{"value":"musescore","label":"MuseScore MSCX"}]</script></lht-select-help>
       <button id="importSource" type="button">Import text source</button>
-      <label>Built-in sample<select id="builtInSample"><option value="1">Sample 1</option><option value="2">Sample 2</option><option value="3">Sample 3</option><option value="4">Sample 4</option><option value="6" selected>Sample 6</option><option value="7">Sample 7</option></select></label>
+      <lht-select-help field-id="builtInSample" label="Built-in sample" help-text="Choose a bundled MusicXML sample to load."><script type="application/json" slot="options">[{"value":"1","label":"Sample 1"},{"value":"2","label":"Sample 2"},{"value":"3","label":"Sample 3"},{"value":"4","label":"Sample 4"},{"value":"6","label":"Sample 6","selected":true},{"value":"7","label":"Sample 7"}]</script></lht-select-help>
       <button id="loadBuiltInSample" type="button">Load sample</button>
     </div>
     <label>Source text<textarea id="sourceInput" spellcheck="false">X:1
@@ -387,49 +459,49 @@ C D E F|</textarea></label>
     <fieldset id="newScoreOptions">
       <legend>New score options</legend>
       <div class="actions">
-        <label><input id="newTemplatePianoGrandStaff" type="checkbox"> Piano grand staff</label>
-        <label>Parts<input id="newPartCount" type="number" min="1" max="16" step="1" value="1"></label>
-        <label>Time beats<input id="newTimeBeats" type="number" min="1" max="16" step="1" value="4"></label>
-        <label>Beat type<select id="newTimeBeatType"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select></label>
-        <label>Key signature<select id="newKeyFifths"><option value="-7">7 flats</option><option value="-6">6 flats</option><option value="-5">5 flats</option><option value="-4">4 flats</option><option value="-3">3 flats</option><option value="-2">2 flats</option><option value="-1">1 flat</option><option value="0" selected>C major / A minor</option><option value="1">1 sharp</option><option value="2">2 sharps</option><option value="3">3 sharps</option><option value="4">4 sharps</option><option value="5">5 sharps</option><option value="6">6 sharps</option><option value="7">7 sharps</option></select></label>
+        <lht-switch-help switch-id="newTemplatePianoGrandStaff" label="Piano grand staff" help-text="Create the first part as a piano grand staff."></lht-switch-help>
+        <lht-text-field-help field-id="newPartCount" label="Parts" help-text="Choose the number of parts in the new score." type="number" min="1" max="16" step="1" value="1"></lht-text-field-help>
+        <lht-text-field-help field-id="newTimeBeats" label="Time beats" help-text="Choose the number of beats in each new-score measure." type="number" min="1" max="16" step="1" value="4"></lht-text-field-help>
+        <lht-select-help field-id="newTimeBeatType" label="Beat type" help-text="Choose the note value that receives one beat."><script type="application/json" slot="options">[{"value":"2","label":"2"},{"value":"4","label":"4","selected":true},{"value":"8","label":"8"},{"value":"16","label":"16"}]</script></lht-select-help>
+        <lht-select-help field-id="newKeyFifths" label="Key signature" help-text="Choose the key signature for the new score."><script type="application/json" slot="options">[{"value":"-7","label":"7 flats"},{"value":"-6","label":"6 flats"},{"value":"-5","label":"5 flats"},{"value":"-4","label":"4 flats"},{"value":"-3","label":"3 flats"},{"value":"-2","label":"2 flats"},{"value":"-1","label":"1 flat"},{"value":"0","label":"C major / A minor","selected":true},{"value":"1","label":"1 sharp"},{"value":"2","label":"2 sharps"},{"value":"3","label":"3 sharps"},{"value":"4","label":"4 sharps"},{"value":"5","label":"5 sharps"},{"value":"6","label":"6 sharps"},{"value":"7","label":"7 sharps"}]</script></lht-select-help>
       </div>
       <div id="newPartClefList" aria-live="polite"></div>
     </fieldset>
     <label>MusicXML output<textarea id="musicXmlOutput"></textarea></label>
     <h2>File conversion <lht-help-tooltip label="File conversion help">Import a supported file, choose an output format, and download one file or a ZIP archive. ZIP root-entry selection is available when the pinned runtime provides API v2.</lht-help-tooltip></h2>
     <div id="fileConversionControls" class="actions">
-      <label>Import format<select id="importFormat"><option value="auto">auto from file name</option><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="zip">ZIP root entry (runtime v2)</option></select></label>
+      <lht-select-help field-id="importFormat" label="Import format" help-text="Choose auto detection or the format of the selected score file."><script type="application/json" slot="options">[{"value":"auto","label":"auto from file name","selected":true},{"value":"musicxml","label":"MusicXML"},{"value":"mxl","label":"MXL"},{"value":"abc","label":"ABC"},{"value":"midi","label":"MIDI"},{"value":"vsqx","label":"VSQX"},{"value":"mei","label":"MEI"},{"value":"lilypond","label":"LilyPond"},{"value":"musescore","label":"MuseScore MSCX"},{"value":"mscz","label":"MuseScore MSCZ"},{"value":"zip","label":"ZIP root entry (runtime v2)"}]</script></lht-select-help>
       <lht-file-select input-id="scoreFile" button-id="selectScoreFile" file-name-id="selectedScoreFileName" button-label="Choose score file" placeholder="No file selected" show-file-name accept=".musicxml,.xml,.mxl,.abc,.mid,.midi,.vsqx,.mei,.ly,.lilypond,.mscx,.mscz,.zip"></lht-file-select>
       <button id="importFile" type="button">Import file</button>
-      <label id="zipEntrySelectLabel" hidden>ZIP root entry<select id="zipEntrySelect" disabled><option value="">(Select a ZIP file first)</option></select></label>
-      <label>Export format<select id="exportFormat"><option value="musicxml">MusicXML</option><option value="mxl">MXL</option><option value="abc">ABC</option><option value="midi">MIDI</option><option value="vsqx">VSQX</option><option value="mei">MEI</option><option value="lilypond">LilyPond</option><option value="musescore">MuseScore MSCX</option><option value="mscz">MuseScore MSCZ</option><option value="svg">SVG</option></select></label>
-      <label><input id="exportMusicXmlAsXmlExtension" type="checkbox"> Use <code>.xml</code> for MusicXML</label>
+      <lht-select-help id="zipEntrySelectLabel" field-id="zipEntrySelect" label="ZIP root entry" help-text="Choose the root score entry from the imported ZIP archive." hidden disabled><script type="application/json" slot="options">[{"value":"","label":"(Select a ZIP file first)"}]</script></lht-select-help>
+      <lht-select-help field-id="exportFormat" label="Export format" help-text="Choose the format for the next file download."><script type="application/json" slot="options">[{"value":"musicxml","label":"MusicXML","selected":true},{"value":"mxl","label":"MXL"},{"value":"abc","label":"ABC"},{"value":"midi","label":"MIDI"},{"value":"vsqx","label":"VSQX"},{"value":"mei","label":"MEI"},{"value":"lilypond","label":"LilyPond"},{"value":"musescore","label":"MuseScore MSCX"},{"value":"mscz","label":"MuseScore MSCZ"},{"value":"svg","label":"SVG"}]</script></lht-select-help>
+      <lht-switch-help switch-id="exportMusicXmlAsXmlExtension" label="Use .xml for MusicXML" help-text="Download MusicXML with a .xml extension instead of .musicxml."></lht-switch-help>
       <button id="exportFile" type="button">Export file</button>
       <button id="exportAll" type="button">Download all formats (ZIP)</button>
     </div>
     <fieldset id="runtimeV2ImportPolicy" hidden disabled>
       <legend>Runtime v2 import policy</legend>
       <div class="actions">
-        <label><input id="importSourceMetadata" type="checkbox" checked> Preserve source metadata</label>
-        <label><input id="importDebugMetadata" type="checkbox" checked> Preserve debug metadata</label>
-        <label>MIDI quantize<select id="midiImportQuantizeGrid"><option value="auto">auto</option><option value="1/8">1/8</option><option value="1/16">1/16</option><option value="1/32">1/32</option><option value="1/64" selected>1/64</option></select></label>
-        <label><input id="midiImportTripletAware" type="checkbox" checked> MIDI triplet-aware quantize</label>
-        <label>VSQX import lyric<input id="vsqxImportDefaultLyric" type="text" value="ら" maxlength="32"></label>
+        <lht-switch-help switch-id="importSourceMetadata" label="Preserve source metadata" help-text="Keep mks:src metadata when importing through Runtime v2." checked></lht-switch-help>
+        <lht-switch-help switch-id="importDebugMetadata" label="Preserve debug metadata" help-text="Keep mks:dbg metadata when importing through Runtime v2." checked></lht-switch-help>
+        <lht-select-help field-id="midiImportQuantizeGrid" label="MIDI quantize" help-text="Choose the rhythmic grid used when Runtime v2 imports MIDI."><script type="application/json" slot="options">[{"value":"auto","label":"auto"},{"value":"1/8","label":"1/8"},{"value":"1/16","label":"1/16"},{"value":"1/32","label":"1/32"},{"value":"1/64","label":"1/64","selected":true}]</script></lht-select-help>
+        <lht-switch-help switch-id="midiImportTripletAware" label="MIDI triplet-aware quantize" help-text="Recognize triplet timing while Runtime v2 quantizes imported MIDI." checked></lht-switch-help>
+        <lht-text-field-help field-id="vsqxImportDefaultLyric" label="VSQX import lyric" help-text="Use this lyric when imported VSQX data needs a default vocal syllable." value="ら" maxlength="32"></lht-text-field-help>
       </div>
     </fieldset>
     <fieldset id="runtimeV2ExportPolicy" hidden disabled>
       <legend>Runtime v2 metadata output policy</legend>
       <div class="actions">
-        <label><input id="exportKeepRoundTripMetadata" type="checkbox" checked> Keep round-trip metadata</label>
-        <label><input id="exportKeepSourceMetadata" type="checkbox" checked> Keep source metadata</label>
-        <label><input id="exportKeepDebugMetadata" type="checkbox" checked> Keep debug metadata</label>
+        <lht-switch-help switch-id="exportKeepRoundTripMetadata" label="Keep round-trip metadata" help-text="Keep mks:meta round-trip metadata in Runtime v2 output." checked></lht-switch-help>
+        <lht-switch-help switch-id="exportKeepSourceMetadata" label="Keep source metadata" help-text="Keep mks:src source metadata in Runtime v2 output." checked></lht-switch-help>
+        <lht-switch-help switch-id="exportKeepDebugMetadata" label="Keep debug metadata" help-text="Keep mks:dbg debug metadata in Runtime v2 output." checked></lht-switch-help>
       </div>
     </fieldset>
     <h2>Selected note <lht-help-tooltip label="Selected note help">Render the score, select a note, then apply the bounded edit commands. A successful command updates canonical MusicXML through the runtime facade.</lht-help-tooltip></h2>
     <p id="selectedNoteMeta">Render the score, then click a note to edit it.</p>
     <div class="actions">
-      <label>Measure<select id="measureSelect" disabled><option value="">(Render a score first)</option></select></label>
-      <label>Note<select id="noteSelect" disabled><option value="">(Render a score first)</option></select></label>
+      <lht-select-help field-id="measureSelect" label="Measure" help-text="Choose a rendered measure to inspect or edit." disabled><script type="application/json" slot="options">[{"value":"","label":"(Render a score first)"}]</script></lht-select-help>
+      <lht-select-help field-id="noteSelect" label="Note" help-text="Choose a rendered note to inspect or edit." disabled><script type="application/json" slot="options">[{"value":"","label":"(Render a score first)"}]</script></lht-select-help>
     </div>
     <fieldset id="pitchEditor" disabled>
       <legend>Selected note editor</legend>
@@ -469,32 +541,33 @@ C D E F|</textarea></label>
     </fieldset>
     <h2>Playback <lht-help-tooltip label="Playback help">The runtime produces a deterministic playback plan. This Web App owns browser audio scheduling and the playback controls.</lht-help-tooltip></h2>
     <div class="actions">
-      <label>Waveform<select id="playbackWaveform"><option value="sine">sine</option><option value="triangle" selected>triangle</option><option value="square">square</option></select></label>
-      <label><input id="playbackUseMidiLike" type="checkbox" checked> MIDI-like plan</label>
-      <label>Grace timing<select id="graceTimingMode"><option value="before_beat" selected>before beat</option><option value="on_beat">on beat</option><option value="classical_equal">classical equal</option></select></label>
-      <label><input id="metricAccentEnabled" type="checkbox" checked> Metric accents</label>
-      <label>Accent amount<select id="metricAccentProfile"><option value="subtle" selected>subtle</option><option value="balanced">balanced</option><option value="strong">strong</option></select></label>
+      <lht-select-help field-id="playbackWaveform" label="Waveform" help-text="Choose the browser oscillator waveform used for playback."><script type="application/json" slot="options">[{"value":"sine","label":"sine"},{"value":"triangle","label":"triangle","selected":true},{"value":"square","label":"square"}]</script></lht-select-help>
+      <lht-switch-help switch-id="playbackUseMidiLike" label="MIDI-like plan" help-text="Use the runtime's MIDI-like playback plan instead of direct score timing." checked></lht-switch-help>
+      <lht-select-help field-id="graceTimingMode" label="Grace timing" help-text="Choose how grace-note timing is applied to the playback plan."><script type="application/json" slot="options">[{"value":"before_beat","label":"before beat","selected":true},{"value":"on_beat","label":"on beat"},{"value":"classical_equal","label":"classical equal"}]</script></lht-select-help>
+      <lht-switch-help switch-id="metricAccentEnabled" label="Metric accents" help-text="Apply metric accents to browser playback." checked></lht-switch-help>
+      <lht-select-help field-id="metricAccentProfile" label="Accent amount" help-text="Choose the strength of metric accents in browser playback."><script type="application/json" slot="options">[{"value":"subtle","label":"subtle","selected":true},{"value":"balanced","label":"balanced"},{"value":"strong","label":"strong"}]</script></lht-select-help>
       <button id="playScore" type="button">Play score</button>
       <button id="stopPlayback" type="button" disabled>Stop</button>
     </div>
     <p id="playbackStatus">Playback: idle</p>
     <h2>MIDI export <lht-help-tooltip label="MIDI export help">These settings are passed explicitly to the runtime's MIDI export request and are also used by MIDI-like playback planning.</lht-help-tooltip></h2>
     <div class="actions">
-      <label>Program<select id="midiProgram"><option value="electric_piano_2" selected>Electric piano 2</option><option value="acoustic_grand_piano">Acoustic grand piano</option><option value="electric_piano_1">Electric piano 1</option><option value="honky_tonk_piano">Honky-tonk piano</option><option value="harpsichord">Harpsichord</option><option value="clavinet">Clavinet</option><option value="drawbar_organ">Drawbar organ</option><option value="acoustic_guitar_nylon">Acoustic guitar (nylon)</option><option value="acoustic_bass">Acoustic bass</option><option value="violin">Violin</option><option value="string_ensemble_1">String ensemble</option><option value="synth_brass_1">Synth brass</option></select></label>
-      <label><input id="forceMidiProgramPreset" type="checkbox"> Override score program changes</label>
-      <label>Export profile<select id="midiExportProfile"><option value="safe">Safe</option><option value="musescore_parity" selected>MuseScore parity</option></select></label>
-      <label><input id="keepMidiRoundtripMetadata" type="checkbox" checked> Keep round-trip metadata</label>
+      <lht-select-help field-id="midiProgram" label="Program" help-text="Choose the MIDI program preset used for MIDI export and MIDI-like playback."><script type="application/json" slot="options">[{"value":"electric_piano_2","label":"Electric piano 2","selected":true},{"value":"acoustic_grand_piano","label":"Acoustic grand piano"},{"value":"electric_piano_1","label":"Electric piano 1"},{"value":"honky_tonk_piano","label":"Honky-tonk piano"},{"value":"harpsichord","label":"Harpsichord"},{"value":"clavinet","label":"Clavinet"},{"value":"drawbar_organ","label":"Drawbar organ"},{"value":"acoustic_guitar_nylon","label":"Acoustic guitar (nylon)"},{"value":"acoustic_bass","label":"Acoustic bass"},{"value":"violin","label":"Violin"},{"value":"string_ensemble_1","label":"String ensemble"},{"value":"synth_brass_1","label":"Synth brass"}]</script></lht-select-help>
+      <lht-switch-help switch-id="forceMidiProgramPreset" label="Override score program changes" help-text="Force the selected program for every exported MIDI track, even when the score changes programs."></lht-switch-help>
+      <lht-select-help field-id="midiExportProfile" label="Export profile" help-text="Choose the MIDI export behavior for individual downloads, ZIP downloads, and MIDI-like playback."><script type="application/json" slot="options">[{"value":"safe","label":"Safe"},{"value":"musescore_parity","label":"MuseScore parity","selected":true}]</script></lht-select-help>
+      <lht-switch-help switch-id="keepMidiRoundtripMetadata" label="Keep round-trip metadata" help-text="Preserve miku-score round-trip metadata in MIDI output." checked></lht-switch-help>
     </div>
     <h2>VSQX export <lht-help-tooltip label="VSQX export help">VSQX conversion uses the Web-owned bridge injected into the runtime before it is initialized.</lht-help-tooltip></h2>
     <div class="actions">
-      <label>Default lyric<input id="vsqxDefaultLyric" type="text" value="ら" maxlength="32"></label>
-      <label><input id="vsqxSplitPartStaves" type="checkbox"> Split part staves</label>
+      <lht-text-field-help field-id="vsqxDefaultLyric" label="Default lyric" help-text="Use this lyric when a VSQX export needs a default vocal syllable." value="ら" maxlength="32"></lht-text-field-help>
+      <lht-switch-help switch-id="vsqxSplitPartStaves" label="Split part staves" help-text="Render staves from each part separately in the generated VSQX file."></lht-switch-help>
     </div>
     <h2>Score preview <lht-help-tooltip label="Score preview help">Verovio is a Web-owned renderer capability. The runtime returns SVG text; this page displays it and maps clicks back to score nodes.</lht-help-tooltip></h2>
     <p id="previewMeta">Preview has not been rendered.</p>
     <div id="scorePreview" aria-live="polite"></div>
   </main>
   <lht-loading-overlay id="fileLoadOverlay" text="Importing score file..." busy-target-id="fileConversionControls"></lht-loading-overlay>
+  <lht-toast id="toast"></lht-toast>
   <script>
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('node:fs'), require('node:crypto')) :
@@ -29675,6 +29748,245 @@ if (!customElements.get("lht-file-select")) {
 }
 
 /*
+ * Web-owned single-file adaptation of the lht-cmn text-field-help control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtTextFieldHelp extends HTMLElement {
+  static get observedAttributes() {
+    return ["disabled", "value"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+
+    const fieldId = (this.getAttribute("field-id") || "").trim();
+    if (!fieldId) return;
+
+    const isTextarea = (this.getAttribute("type") || "").trim().toLowerCase() === "textarea" || this.hasAttribute("rows");
+    const label = this.ownerDocument.createElement("label");
+    label.className = "lht-text-field-help__label";
+    const labelText = this.ownerDocument.createElement("span");
+    labelText.className = "lht-text-field-help__label-text";
+    labelText.textContent = (this.getAttribute("label") || "").trim();
+    const field = this.ownerDocument.createElement(isTextarea ? "textarea" : "input");
+    field.id = fieldId;
+    field.className = "lht-text-field-help__field";
+    if (!isTextarea && this.hasAttribute("type")) field.type = this.getAttribute("type") || "text";
+
+    for (const name of ["placeholder", "autocomplete", "min", "max", "step", "rows", "maxlength"]) {
+      const value = this.getAttribute(name);
+      if (value !== null) field.setAttribute(name, value);
+    }
+    field.required = this.hasAttribute("required");
+    field.disabled = this.hasAttribute("disabled");
+    if (this.hasAttribute("value")) field.value = this.getAttribute("value") || "";
+    const helpText = (this.getAttribute("help-text") || "").trim();
+    if (helpText) field.title = helpText;
+
+    label.append(labelText, field);
+    this.replaceChildren(label);
+    this.#field = field;
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (!this.#field) return;
+    if (name === "disabled") {
+      this.#field.disabled = newValue !== null;
+      return;
+    }
+    if (name === "value") this.setValue(newValue);
+  }
+
+  getValue() {
+    return this.#field?.value ?? "";
+  }
+
+  setValue(value) {
+    if (this.#field) this.#field.value = value == null ? "" : String(value);
+  }
+
+  #field;
+}
+
+if (!customElements.get("lht-text-field-help")) {
+  customElements.define("lht-text-field-help", LhtTextFieldHelp);
+}
+
+/*
+ * Web-owned single-file adaptation of the lht-cmn select-help control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtSelectHelp extends HTMLElement {
+  static get observedAttributes() {
+    return ["disabled", "value"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+
+    const fieldId = (this.getAttribute("field-id") || "").trim();
+    if (!fieldId) return;
+
+    const options = this.#readOptions();
+    const label = this.ownerDocument.createElement("label");
+    label.className = "lht-select-help__label";
+    const labelText = this.ownerDocument.createElement("span");
+    labelText.className = "lht-select-help__label-text";
+    labelText.textContent = (this.getAttribute("label") || "").trim();
+    const field = this.ownerDocument.createElement("select");
+    field.id = fieldId;
+    field.className = "lht-select-help__field";
+    field.disabled = this.hasAttribute("disabled");
+    field.required = this.hasAttribute("required");
+    const helpText = (this.getAttribute("help-text") || "").trim();
+    if (helpText) field.title = helpText;
+
+    label.append(labelText, field);
+    this.replaceChildren(label);
+    this.#field = field;
+    this.setOptions(options, { preserveValue: false });
+    if (this.hasAttribute("value")) this.setValue(this.getAttribute("value"));
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (!this.#field) return;
+    if (name === "disabled") {
+      this.#field.disabled = newValue !== null;
+      return;
+    }
+    if (name === "value") this.setValue(newValue);
+  }
+
+  getValue() {
+    return this.#field?.value ?? "";
+  }
+
+  setValue(value) {
+    if (this.#field) this.#field.value = value == null ? "" : String(value);
+  }
+
+  setOptions(rawOptions, { preserveValue = true } = {}) {
+    if (!this.#field) return;
+    const previousValue = preserveValue ? this.#field.value : "";
+    const options = this.#normalizeOptions(rawOptions);
+    this.#field.replaceChildren();
+    for (const entry of options) {
+      const option = this.ownerDocument.createElement("option");
+      option.value = entry.value;
+      option.textContent = entry.label;
+      option.disabled = entry.disabled;
+      option.selected = entry.selected;
+      this.#field.append(option);
+    }
+    if (previousValue && options.some((entry) => entry.value === previousValue)) {
+      this.#field.value = previousValue;
+    }
+  }
+
+  #readOptions() {
+    const script = this.querySelector("script[type='application/json'][slot='options']");
+    if (!script) return [];
+    try {
+      return JSON.parse(script.textContent || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  #normalizeOptions(rawOptions) {
+    if (!Array.isArray(rawOptions)) return [];
+    return rawOptions
+      .map((entry) => ({
+        value: String(entry?.value ?? entry?.label ?? ""),
+        label: String(entry?.label ?? entry?.text ?? entry?.value ?? ""),
+        selected: entry?.selected === true,
+        disabled: entry?.disabled === true,
+      }))
+      .filter((entry) => entry.value || entry.label);
+  }
+
+  #field;
+}
+
+if (!customElements.get("lht-select-help")) {
+  customElements.define("lht-select-help", LhtSelectHelp);
+}
+
+/*
+ * Web-owned single-file adaptation of the lht-cmn switch-help control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtSwitchHelp extends HTMLElement {
+  static get observedAttributes() {
+    return ["checked", "disabled"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+
+    const switchId = (this.getAttribute("switch-id") || "").trim();
+    if (!switchId) return;
+
+    const label = this.ownerDocument.createElement("label");
+    label.className = "lht-switch-help__label";
+    const field = this.ownerDocument.createElement("input");
+    field.id = switchId;
+    field.className = "lht-switch-help__field";
+    field.type = "checkbox";
+    field.checked = this.hasAttribute("checked");
+    field.disabled = this.hasAttribute("disabled");
+    const labelText = this.ownerDocument.createElement("span");
+    labelText.className = "lht-switch-help__label-text";
+    labelText.textContent = (this.getAttribute("label") || "").trim();
+
+    label.append(field, labelText);
+    const helpText = (this.getAttribute("help-text") || this.getAttribute("help-label") || "").trim();
+    if (helpText) {
+      const help = this.ownerDocument.createElement("lht-help-tooltip");
+      help.setAttribute("label", `${labelText.textContent || "Switch"} help`);
+      help.textContent = helpText;
+      label.append(help);
+    }
+
+    this.replaceChildren(label);
+    this.#field = field;
+    field.addEventListener("change", () => this.setChecked(field.checked));
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (!this.#field) return;
+    if (name === "checked") this.setChecked(newValue !== null);
+    if (name === "disabled") this.#field.disabled = newValue !== null;
+  }
+
+  get checked() {
+    return this.#field?.checked ?? this.hasAttribute("checked");
+  }
+
+  set checked(value) {
+    this.setChecked(value);
+  }
+
+  setChecked(value) {
+    const checked = Boolean(value);
+    if (this.#field) this.#field.checked = checked;
+    this.toggleAttribute("checked", checked);
+  }
+
+  #field;
+}
+
+if (!customElements.get("lht-switch-help")) {
+  customElements.define("lht-switch-help", LhtSwitchHelp);
+}
+
+/*
  * Web-owned single-file adaptation of the lht-cmn error-alert control.
  * Licensed under the Apache License, Version 2.0.
  */
@@ -29855,6 +30167,99 @@ if (!customElements.get("lht-loading-overlay")) {
   customElements.define("lht-loading-overlay", LhtLoadingOverlay);
 }
 
+/*
+ * Web-owned single-file adaptation of the lht-cmn toast control.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+class LhtToast extends HTMLElement {
+  static get observedAttributes() {
+    return ["active", "text"];
+  }
+
+  connectedCallback() {
+    if (this.dataset.initialized === "true") return;
+    this.dataset.initialized = "true";
+    this.#view = this.ownerDocument.defaultView;
+
+    this.setAttribute("role", "status");
+    this.setAttribute("aria-live", "polite");
+    this.setAttribute("aria-atomic", "true");
+
+    const body = this.ownerDocument.createElement("div");
+    body.className = "lht-toast__body";
+    body.textContent = this.#normalizedText(this.getAttribute("text") || this.textContent);
+    this.replaceChildren(body);
+    this.#body = body;
+    this.setActive(this.hasAttribute("active"));
+
+    if (this.#view && typeof this.#view.showToast !== "function") {
+      this.#view.showToast = (message, durationMs) => this.show(message, durationMs);
+    }
+  }
+
+  disconnectedCallback() {
+    this.#clearHideTimer();
+  }
+
+  attributeChangedCallback(name, _oldValue, newValue) {
+    if (name === "text" && this.#body) {
+      this.#body.textContent = this.#normalizedText(newValue);
+      return;
+    }
+    if (name === "active") this.setActive(newValue !== null);
+  }
+
+  isVisible() {
+    return this.getAttribute("data-visible") === "true";
+  }
+
+  show(message, durationMs) {
+    this.#clearHideTimer();
+    if (this.#body) {
+      this.#body.textContent = this.#normalizedText(message || this.getAttribute("text") || this.#body.textContent);
+    }
+    this.setActive(true);
+
+    const configuredDuration = Number(this.getAttribute("duration-ms"));
+    const defaultDuration = Number.isFinite(configuredDuration) && configuredDuration > 0 ? configuredDuration : 1600;
+    const requestedDuration = Number(durationMs);
+    const hideAfterMs = Number.isFinite(requestedDuration) && requestedDuration > 0 ? requestedDuration : defaultDuration;
+    this.#hideTimer = this.#view?.setTimeout(() => this.hide(), hideAfterMs) ?? null;
+  }
+
+  hide() {
+    this.#clearHideTimer();
+    this.setActive(false);
+  }
+
+  setActive(active) {
+    const visible = Boolean(active);
+    this.toggleAttribute("active", visible);
+    this.setAttribute("data-visible", visible ? "true" : "false");
+    this.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+
+  #normalizedText(value) {
+    return String(value || "Done.").trim() || "Done.";
+  }
+
+  #clearHideTimer() {
+    if (this.#hideTimer !== null) {
+      this.#view?.clearTimeout(this.#hideTimer);
+      this.#hideTimer = null;
+    }
+  }
+
+  #body;
+  #hideTimer = null;
+  #view = null;
+}
+
+if (!customElements.get("lht-toast")) {
+  customElements.define("lht-toast", LhtToast);
+}
+
 const verovioAdapter = createBrowserVerovioAdapter();
 const vsqxAdapter = createBrowserVsqxAdapter();
 const runtime = loadMikuScoreRuntime({
@@ -29882,6 +30287,7 @@ const musicXmlOutput = document.getElementById("musicXmlOutput");
 const status = document.getElementById("status");
 const errorAlert = document.getElementById("errorAlert");
 const fileLoadOverlay = document.getElementById("fileLoadOverlay");
+const toast = document.getElementById("toast");
 const localDraftStatus = document.getElementById("localDraftStatus");
 const clearLocalDraft = document.getElementById("clearLocalDraft");
 const resetBrowserSettings = document.getElementById("resetBrowserSettings");
@@ -29970,6 +30376,20 @@ const showStatus = (message) => {
 
 const showError = (message) => {
   errorAlert.show(message);
+};
+
+const isLhtToastElement = (element) => {
+  return element?.tagName?.toLowerCase() === "lht-toast"
+    && typeof element.show === "function";
+};
+
+const showToast = (message, durationMs) => {
+  if (isLhtToastElement(toast)) toast.show(message, durationMs);
+};
+
+const showDownloadStatus = (message) => {
+  showStatus(message);
+  showToast(message);
 };
 
 const showFailure = (result) => {
@@ -30620,7 +31040,7 @@ document.getElementById("exportFile")?.addEventListener("click", async () => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format));
-    showStatus(`Downloaded ${format} file.`);
+    showDownloadStatus(`Downloaded ${format} file.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showError(`MKS_OUTPUT_FAILED: ${message}`);
@@ -30647,7 +31067,7 @@ document.getElementById("exportAll")?.addEventListener("click", async () => {
     const archive = await runtime.output.encodeZipBundle(entries, { compressed: true });
     if (!archive.ok) return showFailure(archive);
     downloadBrowserData(archive.value, exportFileDetails("zip", "miku-score-all"));
-    showStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
+    showDownloadStatus(`Downloaded ${entries.length} formats as a ZIP archive.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     showError(`MKS_OUTPUT_FAILED: ${message}`);
@@ -30818,7 +31238,7 @@ const downloadCurrentMeasure = async (format) => {
   if (!exported.ok) return showFailure(exported);
   try {
     downloadBrowserData(exported.value, configuredExportFileDetails(format, measureExportBaseName()));
-    showStatus(`Downloaded isolated measure ${format}.`);
+    showDownloadStatus(`Downloaded isolated measure ${format}.`);
   } catch (error) {
     showError(`MKS_OUTPUT_FAILED: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -30934,7 +31354,7 @@ document.getElementById("downloadMidi")?.addEventListener("click", async () => {
   anchor.download = "miku-score.mid";
   anchor.click();
   URL.revokeObjectURL(url);
-  showStatus("Downloaded MIDI.");
+  showDownloadStatus("Downloaded MIDI.");
 });
 
 document.getElementById("buildPlaybackPlan")?.addEventListener("click", () => {

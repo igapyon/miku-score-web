@@ -125,6 +125,172 @@ try {
   assert.equal(byId("selectedScoreFileName").textContent, "chosen.abc");
   assert.deepEqual(fileSelection?.names, ["chosen.abc"]);
 
+  assert.equal(globalThis.customElements.get("lht-select-help")?.name, "LhtSelectHelp");
+  const midiExportProfileHelp = document.querySelector("lht-select-help[field-id='midiExportProfile']");
+  const midiExportProfile = byId("midiExportProfile");
+  assert.ok(midiExportProfileHelp, "MIDI export profile must be upgraded through lht-select-help");
+  assert.equal(midiExportProfileHelp.getValue(), "musescore_parity");
+  assert.equal(midiExportProfile.value, "musescore_parity");
+  assert.equal(midiExportProfile.title, "Choose the MIDI export behavior for individual downloads, ZIP downloads, and MIDI-like playback.");
+  midiExportProfileHelp.setValue("safe");
+  assert.equal(midiExportProfileHelp.getValue(), "safe");
+  midiExportProfileHelp.setOptions([
+    { value: "safe", label: "Safe" },
+    { value: "musescore_parity", label: "MuseScore parity" },
+  ]);
+  assert.equal(midiExportProfile.value, "safe");
+  midiExportProfileHelp.setValue("musescore_parity");
+
+  assert.equal(globalThis.customElements.get("lht-switch-help")?.name, "LhtSwitchHelp");
+  const midiRoundtripMetadataHelp = document.querySelector("lht-switch-help[switch-id='keepMidiRoundtripMetadata']");
+  const keepMidiRoundtripMetadata = byId("keepMidiRoundtripMetadata");
+  assert.ok(midiRoundtripMetadataHelp, "MIDI round-trip metadata must be upgraded through lht-switch-help");
+  assert.equal(keepMidiRoundtripMetadata.checked, true);
+  assert.equal(
+    midiRoundtripMetadataHelp.querySelector("lht-help-tooltip")?.textContent,
+    "Preserve miku-score round-trip metadata in MIDI output.",
+  );
+  let roundtripChanges = 0;
+  keepMidiRoundtripMetadata.addEventListener("change", () => { roundtripChanges += 1; }, { once: true });
+  keepMidiRoundtripMetadata.checked = false;
+  keepMidiRoundtripMetadata.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  assert.equal(roundtripChanges, 1);
+  assert.equal(midiRoundtripMetadataHelp.checked, false);
+  midiRoundtripMetadataHelp.setChecked(true);
+  assert.equal(keepMidiRoundtripMetadata.checked, true);
+  const forceMidiProgramPresetHelp = document.querySelector("lht-switch-help[switch-id='forceMidiProgramPreset']");
+  const forceMidiProgramPreset = byId("forceMidiProgramPreset");
+  assert.ok(forceMidiProgramPresetHelp, "MIDI program override must be upgraded through lht-switch-help");
+  assert.equal(forceMidiProgramPreset.checked, false);
+  assert.equal(
+    forceMidiProgramPresetHelp.querySelector("lht-help-tooltip")?.textContent,
+    "Force the selected program for every exported MIDI track, even when the score changes programs.",
+  );
+
+  assert.equal(globalThis.customElements.get("lht-text-field-help")?.name, "LhtTextFieldHelp");
+  const vsqxDefaultLyricHelp = document.querySelector("lht-text-field-help[field-id='vsqxDefaultLyric']");
+  const vsqxDefaultLyric = byId("vsqxDefaultLyric");
+  assert.ok(vsqxDefaultLyricHelp, "VSQX default lyric must be upgraded through lht-text-field-help");
+  assert.equal(vsqxDefaultLyricHelp.getValue(), "ら");
+  assert.equal(vsqxDefaultLyric.maxLength, 32);
+  assert.equal(vsqxDefaultLyric.title, "Use this lyric when a VSQX export needs a default vocal syllable.");
+  vsqxDefaultLyricHelp.setValue("み");
+  assert.equal(vsqxDefaultLyric.value, "み");
+  vsqxDefaultLyricHelp.setValue("ら");
+  const vsqxSplitPartStavesHelp = document.querySelector("lht-switch-help[switch-id='vsqxSplitPartStaves']");
+  const vsqxSplitPartStaves = byId("vsqxSplitPartStaves");
+  assert.ok(vsqxSplitPartStavesHelp, "VSQX split-part-staves must be upgraded through lht-switch-help");
+  assert.equal(vsqxSplitPartStaves.checked, false);
+  assert.equal(
+    vsqxSplitPartStavesHelp.querySelector("lht-help-tooltip")?.textContent,
+    "Render staves from each part separately in the generated VSQX file.",
+  );
+
+  const runtimeV2Switches = [
+    ["exportMusicXmlAsXmlExtension", false, "Download MusicXML with a .xml extension instead of .musicxml."],
+    ["importSourceMetadata", true, "Keep mks:src metadata when importing through Runtime v2."],
+    ["importDebugMetadata", true, "Keep mks:dbg metadata when importing through Runtime v2."],
+    ["midiImportTripletAware", true, "Recognize triplet timing while Runtime v2 quantizes imported MIDI."],
+    ["exportKeepRoundTripMetadata", true, "Keep mks:meta round-trip metadata in Runtime v2 output."],
+    ["exportKeepSourceMetadata", true, "Keep mks:src source metadata in Runtime v2 output."],
+    ["exportKeepDebugMetadata", true, "Keep mks:dbg debug metadata in Runtime v2 output."],
+  ];
+  for (const [switchId, checked, helpText] of runtimeV2Switches) {
+    const host = document.querySelector(`lht-switch-help[switch-id='${switchId}']`);
+    assert.ok(host, `${switchId} must be upgraded through lht-switch-help`);
+    assert.equal(byId(switchId).checked, checked);
+    assert.equal(host.querySelector("lht-help-tooltip")?.textContent, helpText);
+  }
+  const midiImportQuantizeHelp = document.querySelector("lht-select-help[field-id='midiImportQuantizeGrid']");
+  const midiImportQuantizeGrid = byId("midiImportQuantizeGrid");
+  assert.ok(midiImportQuantizeHelp, "MIDI quantize grid must be upgraded through lht-select-help");
+  assert.equal(midiImportQuantizeGrid.value, "1/64");
+  assert.equal(midiImportQuantizeGrid.title, "Choose the rhythmic grid used when Runtime v2 imports MIDI.");
+  const vsqxImportDefaultLyricHelp = document.querySelector("lht-text-field-help[field-id='vsqxImportDefaultLyric']");
+  const vsqxImportDefaultLyric = byId("vsqxImportDefaultLyric");
+  assert.ok(vsqxImportDefaultLyricHelp, "VSQX import lyric must be upgraded through lht-text-field-help");
+  assert.equal(vsqxImportDefaultLyric.value, "ら");
+  assert.equal(vsqxImportDefaultLyric.maxLength, 32);
+  assert.equal(vsqxImportDefaultLyric.title, "Use this lyric when imported VSQX data needs a default vocal syllable.");
+
+  const playbackAndMidiSelects = [
+    ["playbackWaveform", "triangle", "Choose the browser oscillator waveform used for playback."],
+    ["graceTimingMode", "before_beat", "Choose how grace-note timing is applied to the playback plan."],
+    ["metricAccentProfile", "subtle", "Choose the strength of metric accents in browser playback."],
+    ["midiProgram", "electric_piano_2", "Choose the MIDI program preset used for MIDI export and MIDI-like playback."],
+  ];
+  for (const [fieldId, value, helpText] of playbackAndMidiSelects) {
+    const host = document.querySelector(`lht-select-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-select-help`);
+    assert.equal(byId(fieldId).value, value);
+    assert.equal(byId(fieldId).title, helpText);
+  }
+  const playbackSwitches = [
+    ["playbackUseMidiLike", "Use the runtime's MIDI-like playback plan instead of direct score timing."],
+    ["metricAccentEnabled", "Apply metric accents to browser playback."],
+  ];
+  for (const [switchId, helpText] of playbackSwitches) {
+    const host = document.querySelector(`lht-switch-help[switch-id='${switchId}']`);
+    assert.ok(host, `${switchId} must be upgraded through lht-switch-help`);
+    assert.equal(byId(switchId).checked, true);
+    assert.equal(host.querySelector("lht-help-tooltip")?.textContent, helpText);
+  }
+
+  const newScoreSelects = [
+    ["newTimeBeatType", "4", "Choose the note value that receives one beat."],
+    ["newKeyFifths", "0", "Choose the key signature for the new score."],
+  ];
+  for (const [fieldId, value, helpText] of newScoreSelects) {
+    const host = document.querySelector(`lht-select-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-select-help`);
+    assert.equal(byId(fieldId).value, value);
+    assert.equal(byId(fieldId).title, helpText);
+  }
+  const newScoreTextFields = [
+    ["newPartCount", "1", "Choose the number of parts in the new score."],
+    ["newTimeBeats", "4", "Choose the number of beats in each new-score measure."],
+  ];
+  for (const [fieldId, value, helpText] of newScoreTextFields) {
+    const host = document.querySelector(`lht-text-field-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-text-field-help`);
+    assert.equal(byId(fieldId).type, "number");
+    assert.equal(byId(fieldId).value, value);
+    assert.equal(byId(fieldId).min, "1");
+    assert.equal(byId(fieldId).max, "16");
+    assert.equal(byId(fieldId).step, "1");
+    assert.equal(byId(fieldId).title, helpText);
+  }
+  const pianoGrandStaffHelp = document.querySelector("lht-switch-help[switch-id='newTemplatePianoGrandStaff']");
+  assert.ok(pianoGrandStaffHelp, "Piano grand staff must be upgraded through lht-switch-help");
+  assert.equal(byId("newTemplatePianoGrandStaff").checked, false);
+  assert.equal(pianoGrandStaffHelp.querySelector("lht-help-tooltip")?.textContent, "Create the first part as a piano grand staff.");
+
+  const sourceFileExportSelects = [
+    ["sourceFormat", "musicxml", "Choose the format of the source text to import."],
+    ["builtInSample", "6", "Choose a bundled MusicXML sample to load."],
+    ["importFormat", "auto", "Choose auto detection or the format of the selected score file."],
+    ["exportFormat", "musicxml", "Choose the format for the next file download."],
+  ];
+  for (const [fieldId, value, helpText] of sourceFileExportSelects) {
+    const host = document.querySelector(`lht-select-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-select-help`);
+    assert.equal(byId(fieldId).value, value);
+    assert.equal(byId(fieldId).title, helpText);
+  }
+  const dynamicSelects = [
+    ["zipEntrySelect", "Choose the root score entry from the imported ZIP archive.", "(Select a ZIP file first)"],
+    ["measureSelect", "Choose a rendered measure to inspect or edit.", "(Render a score first)"],
+    ["noteSelect", "Choose a rendered note to inspect or edit.", "(Render a score first)"],
+  ];
+  for (const [fieldId, helpText, placeholder] of dynamicSelects) {
+    const host = document.querySelector(`lht-select-help[field-id='${fieldId}']`);
+    assert.ok(host, `${fieldId} must be upgraded through lht-select-help`);
+    assert.equal(byId(fieldId).disabled, true);
+    assert.equal(byId(fieldId).title, helpText);
+    assert.equal(byId(fieldId).options[0]?.textContent, placeholder);
+  }
+  assert.equal(byId("zipEntrySelectLabel").hidden, true);
+
   assert.equal(globalThis.customElements.get("lht-error-alert")?.name, "LhtErrorAlert");
   const errorAlert = byId("errorAlert");
   assert.equal(errorAlert.isVisible(), false);
@@ -176,6 +342,24 @@ try {
   loadingBusyTarget.remove();
   loadingDisabledTarget.remove();
 
+  assert.equal(globalThis.customElements.get("lht-toast")?.name, "LhtToast");
+  const toast = byId("toast");
+  assert.equal(toast.isVisible(), false);
+  assert.equal(toast.getAttribute("aria-hidden"), "true");
+  assert.equal(toast.getAttribute("role"), "status");
+  assert.equal(toast.getAttribute("aria-live"), "polite");
+  assert.equal(toast.getAttribute("aria-atomic"), "true");
+  assert.equal(typeof dom.window.showToast, "function");
+  dom.window.showToast("Download ready.", 10000);
+  assert.equal(toast.isVisible(), true);
+  assert.equal(toast.getAttribute("aria-hidden"), "false");
+  assert.equal(toast.querySelector(".lht-toast__body")?.textContent, "Download ready.");
+  toast.hide();
+  assert.equal(toast.isVisible(), false);
+  toast.show("Temporary notification.", 1);
+  await settle();
+  assert.equal(toast.isVisible(), false);
+
   assert.equal(globalThis.__mikuScoreWebRuntime.vsqxAvailable, true);
   const v2Available = globalThis.__mikuScoreWebRuntime.v2Available === true;
   assert.equal(byId("runtimeV2ImportPolicy").hidden, !v2Available);
@@ -219,6 +403,9 @@ try {
   await settle();
   assert.match(byId("scorePreview").innerHTML, /mks-web-n1/);
   assert.equal(byId("noteSelect").disabled, false);
+  assert.equal(byId("measureSelect").disabled, false);
+  assert.ok(byId("noteSelect").options.length > 1);
+  assert.ok(byId("measureSelect").options.length > 1);
 
   byId("scorePreview").querySelector("#mks-web-n1-head").dispatchEvent(
     new dom.window.MouseEvent("click", { bubbles: true }),
@@ -246,6 +433,9 @@ try {
   byId("exportFile").click();
   await settle();
   assert.deepEqual(downloads.at(-1), { href: "blob:miku-score-web-ui", download: "miku-score.xml" });
+  assert.equal(toast.isVisible(), true);
+  assert.match(toast.textContent, /Downloaded musicxml file/);
+  toast.hide();
 
   byId("exportFormat").value = "vsqx";
   byId("vsqxDefaultLyric").value = "み";
@@ -254,6 +444,8 @@ try {
   await settle();
   assert.deepEqual(downloads.at(-1), { href: "blob:miku-score-web-ui", download: "miku-score.vsqx" });
   assert.match(await downloadBlobs.at(-1).text(), /<y>み<\/y>/);
+  assert.match(toast.textContent, /Downloaded vsqx file/);
+  toast.hide();
 
   byId("exportAll").click();
   for (let attempt = 0; attempt < 20 && downloads.at(-1)?.download !== "miku-score-all.zip"; attempt += 1) {
@@ -261,6 +453,8 @@ try {
   }
   assert.deepEqual(downloads.at(-1), { href: "blob:miku-score-web-ui", download: "miku-score-all.zip" });
   assert.match(byId("status").textContent, /Downloaded 10 formats as a ZIP archive/);
+  assert.match(toast.textContent, /Downloaded 10 formats as a ZIP archive/);
+  toast.hide();
   const archiveEntries = readZipEntries(new Uint8Array(await downloadBlobs.at(-1).arrayBuffer()));
   assert.deepEqual([...archiveEntries.keys()].sort(), [
     "miku-score.abc",
@@ -349,7 +543,7 @@ try {
   byId("metricAccentProfile").value = "strong";
   byId("midiProgram").value = "violin";
   byId("forceMidiProgramPreset").checked = true;
-  byId("midiExportProfile").value = "musescore_parity";
+  midiExportProfile.value = "musescore_parity";
   byId("keepMidiRoundtripMetadata").checked = true;
   byId("downloadMidi").click();
   await settle();

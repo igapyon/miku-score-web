@@ -6,7 +6,7 @@ single-file composition; score semantics and format conversion stay upstream.
 
 ## Runtime intake
 
-The Web App is currently `0.8.1` and uses the checked-in `v0.8.0` runtime lock.
+The Web App is currently `0.8.2` and uses the checked-in `v0.8.0` runtime lock.
 The Web App's major/minor version (`a.b`) follows the published Runtime's
 major/minor version; its patch version (`c`) may be managed independently. The
 build validates that relationship alongside the published runtime lock. Fetch the
@@ -69,9 +69,14 @@ and round-trip metadata). Its default profile, metric accents, and metadata
 retention match the historical combined Web App. The MusicXML
 `.xml`/`.musicxml` extension choice is Web-owned and does not change conversion
 data.
+Web-owned `lht-*` components render native controls with the historical DOM
+IDs, so browser event wiring remains direct. Their static/dynamic migration
+contract and the explicitly deferred clef-list and textarea controls are
+recorded in `docs/WEB_UI_MIGRATION.md`.
 `fixtures/parity/` fixes representative v0.7.0 value-operation baselines for
-editing, diagnostics, and configured MIDI/MXL/MuseScore/MSCZ/VSQX format flows
-without coupling this repository's tests to upstream implementation modules.
+editing, diagnostics, configured MIDI-like playback, and
+MIDI/MXL/MuseScore/MSCZ/VSQX format flows without coupling this repository's
+tests to upstream implementation modules.
 The remaining runtime capabilities and the evidence required before removing
 the historical combined Web surface are recorded in
 `docs/CUTOVER_GATE.md`.

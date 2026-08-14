@@ -97,11 +97,22 @@ Useful upstream references:
   - [x] Web-owned `lht-file-select` slice: restored a file chooser button, selected-file name, and public selection events while keeping the existing browser import workflow intact.
   - [x] Web-owned `lht-error-alert` slice: separated accessible runtime, input, and output diagnostics from normal status messages.
   - [x] Web-owned `lht-loading-overlay` slice: restored accessible progress feedback and temporary file-import controls during file and ZIP-entry conversion.
+  - [x] Web-owned `lht-toast` slice: added short accessible download confirmations while retaining persistent status messages.
+  - [x] Web-owned `lht-select-help` slice: migrated the static MIDI export profile without changing its DOM ID or settings flow.
+  - [x] Web-owned `lht-switch-help` slice: migrated the MIDI program-override and round-trip metadata switches while preserving their checkbox IDs, checked states, and `change` flows.
+  - [x] Web-owned `lht-text-field-help` slice: migrated the VSQX default lyric while preserving its input ID, length limit, and settings flow.
+  - [x] Reused Web-owned `lht-switch-help` for VSQX part-staff splitting while preserving its checkbox ID, checked state, and settings flow.
+  - [x] Documented static and dynamic control contracts in `docs/WEB_UI_MIGRATION.md` before continuing migration slices.
+  - [x] Reused Web-owned controls for Runtime v2 import/output policy settings and the MusicXML filename switch while preserving IDs, defaults, and request values.
+  - [x] Reused Web-owned controls for static playback and MIDI program settings while preserving playback-plan, MIDI-export, and browser-settings values.
+  - [x] Reused Web-owned controls for static new-score and source/file/export settings while preserving conversion, new-score, and download values.
+  - [x] Reused `lht-select-help` for ZIP entry, note, and measure selectors after verifying direct dynamic option updates remain compatible; dynamic clef-list and textarea controls remain documented exceptions.
 - [x] Add a generated-single-file JSDOM UI regression smoke for conversion, preview, selection/edit, VSQX export, file input, and configured new-score creation.
 - [x] Add Chromium real-browser coverage for file-loaded conversion, preview, selected-note editing, configured VSQX/ZIP downloads, browser file import, and no external requests.
 - [x] Fix the first v0.7.0 checked-in parity baseline for canonical load/state, ABC, configured MIDI, selected-note pitch editing, and invalid MusicXML diagnostics through the published runtime.
 - [x] Extend the checked-in v0.7.0 fixture through configured MIDI, MXL, MuseScore/MSCZ, and VSQX output/round-trip flows.
 - [ ] Add further output/diagnostic parity fixtures for remaining editing and browser-facing format flows.
+  - [x] Fix the v0.7.0 MIDI-like playback-plan schedule and measure timeline baseline.
 - [x] Add GitHub Actions configuration for published-runtime intake, build, tests, offline checks, and generated-HTML synchronization.
 - [x] Confirm the GitHub Actions run for the merged v0.8.0 runtime intake.
 
