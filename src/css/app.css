@@ -75,6 +75,82 @@ p { margin: 8px 0; }
   font-size: .9rem;
 }
 
+lht-error-alert {
+  display: none;
+  width: 100%;
+  margin: 8px 0;
+}
+
+lht-error-alert[active] { display: block; }
+
+.lht-error-alert__body {
+  margin: 0;
+  padding: .65rem .8rem;
+  overflow-wrap: anywhere;
+  border: 1px solid #f3c7c9;
+  border-radius: 12px;
+  background: #fff3f3;
+  color: #9a1a1f;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+lht-error-alert[variant="warning"] .lht-error-alert__body {
+  border-color: #f0d59b;
+  background: #fff8e6;
+  color: #8a5a00;
+}
+
+lht-error-alert[variant="info"] .lht-error-alert__body {
+  border-color: #bdd7f5;
+  background: #eef6ff;
+  color: #175ea8;
+}
+
+lht-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(28 27 31 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+lht-loading-overlay[active] { display: flex; }
+
+lht-loading-overlay[aria-hidden="true"] { pointer-events: none; }
+
+.lht-loading-overlay__dialog {
+  display: grid;
+  min-width: 13rem;
+  gap: .65rem;
+  justify-items: center;
+  padding: 1rem 1.2rem;
+  border: 1px solid #ded4ef;
+  border-radius: 16px;
+  background: var(--mks-surface);
+  box-shadow: 0 18px 36px rgb(24 18 36 / 24%);
+}
+
+.lht-loading-overlay__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid #d8caee;
+  border-top-color: var(--mks-primary);
+  border-radius: 50%;
+  animation: lht-loading-overlay-spin .95s linear infinite;
+}
+
+.lht-loading-overlay__text {
+  margin: 0;
+  color: #383247;
+  font-size: .92rem;
+  font-weight: 600;
+}
+
 label {
   display: inline-flex;
   flex: 1 1 180px;
@@ -249,6 +325,14 @@ legend {
 }
 
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+@keyframes lht-loading-overlay-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lht-loading-overlay__spinner { animation-duration: 2.4s; }
+}
 
 @media (max-width: 680px) {
   main { width: min(100% - 16px, 1120px); margin: 8px auto; padding: 14px; border-radius: 14px; }

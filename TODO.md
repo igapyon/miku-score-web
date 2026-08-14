@@ -95,6 +95,8 @@ Useful upstream references:
 - [ ] Move remaining `lht-cmn`-specific controls and Web-owned documentation.
   - [x] First Web-owned `lht-help-tooltip` slice: restored contextual help for the Web App's main input, conversion, edit, playback, export, and preview controls without adding an external runtime dependency.
   - [x] Web-owned `lht-file-select` slice: restored a file chooser button, selected-file name, and public selection events while keeping the existing browser import workflow intact.
+  - [x] Web-owned `lht-error-alert` slice: separated accessible runtime, input, and output diagnostics from normal status messages.
+  - [x] Web-owned `lht-loading-overlay` slice: restored accessible progress feedback and temporary file-import controls during file and ZIP-entry conversion.
 - [x] Add a generated-single-file JSDOM UI regression smoke for conversion, preview, selection/edit, VSQX export, file input, and configured new-score creation.
 - [x] Add Chromium real-browser coverage for file-loaded conversion, preview, selected-note editing, configured VSQX/ZIP downloads, browser file import, and no external requests.
 - [x] Fix the first v0.7.0 checked-in parity baseline for canonical load/state, ABC, configured MIDI, selected-note pitch editing, and invalid MusicXML diagnostics through the published runtime.
